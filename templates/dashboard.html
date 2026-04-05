@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bank Management – Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { background: #f0f4f8; font-family: 'Segoe UI', sans-serif; }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(90deg, #17B2E2, #2980B9);
+      color: white;
+      padding: 18px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    header h1 { font-size: 22px; letter-spacing: 3px; }
+    header span { font-size: 14px; opacity: 0.85; }
+    .logout-btn {
+      background: #e74c3c; color: white; border: none; padding: 8px 18px;
+      border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none;
+      font-size: 13px;
+    }
+    .logout-btn:hover { background: #c0392b; }
+
+    /* ── FLASH ── */
+    .flash-wrap { padding: 12px 32px 0; }
+    .flash { padding: 10px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; }
+    .flash.error   { background: #fdecea; color: #c0392b; border-left: 4px solid #e74c3c; }
+    .flash.success { background: #eafaf1; color: #1e8449; border-left: 4px solid #27ae60; }
+
+    /* ── FORM CARD ── */
+    .form-card {
+      background: white;
+      margin: 20px 32px;
+      border-radius: 12px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .form-card h2 {
+      font-size: 16px; color: #2980B9; letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 20px;
+      border-bottom: 2px solid #E5DF71; padding-bottom: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label {
+      font-size: 12px; font-weight: 600; color: #555;
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px;
+    }
+    .form-group input,
+    .form-group select {
+      padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 7px;
+      font-size: 14px; outline: none; transition: border 0.25s;
+    }
+    .form-group input:focus,
+    .form-group select:focus { border-color: #17B2E2; }
+
+    /* ── BUTTONS ── */
+    .btn-row { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+    .btn {
+      padding: 10px 22px; border: none; border-radius: 7px;
+      font-size: 14px; font-weight: bold; cursor: pointer;
+      letter-spacing: 1px; transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-add    { background: #27ae60; color: white; }
+    .btn-update { background: #2980B9; color: white; }
+    .btn-clear  { background: #95a5a6; color: white; }
+
+    /* ── TABLE ── */
+    .table-card {
+      background: white; margin: 0 32px 32px;
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .table-card h2 {
+      font-size: 15px; color: #2980B9; letter-spacing: 2px;
+      text-transform: uppercase; padding: 18px 24px;
+      border-bottom: 2px solid #E5DF71;
+    }
+    .table-wrap { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: #17B2E2; color: white; }
+    thead th { padding: 11px 14px; text-align: left; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.15s; }
+    tbody tr:hover { background: #eaf7fc; }
+    tbody td { padding: 10px 14px; white-space: nowrap; }
+
+    .btn-delete {
+      background: #e74c3c; color: white; border: none;
+      padding: 5px 12px; border-radius: 5px; cursor: pointer;
+      font-size: 12px; font-weight: bold;
+    }
+    .btn-delete:hover { background: #c0392b; }
+
+    .no-records { text-align: center; padding: 30px; color: #aaa; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <h1>🏦 BANK MANAGEMENT SYSTEM</h1>
+  <span>Logged in as: <strong>{{ user }}</strong></span>
+  <a href="/logout" class="logout-btn">LOGOUT</a>
+</header>
+
+<!-- FLASH MESSAGES -->
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<!-- FORM -->
+<div class="form-card">
+  <h2>📋 Client Registration Form</h2>
+  <form method="POST" action="/add" id="mainForm">
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" name="name" id="f_name" placeholder="Full name" required />
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" name="address" id="f_address" placeholder="Address" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="text" name="email" id="f_email" placeholder="example@mail.com" />
+      </div>
+      <div class="form-group">
+        <label>Age</label>
+        <input type="number" name="age" id="f_age" placeholder="18+" min="0" />
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" name="city" id="f_city" placeholder="Type or select a city" list="city_list" autocomplete="off" />
+        <datalist id="city_list">
+            <option value="Asansol">
+            <option value="Durgapur">
+            <option value="Raniganj">
+            <option value="Kolkata">
+            <option value="Mumbai">
+            <option value="Delhi">
+            <option value="Bangalore">
+            <option value="Hyderabad">
+            <option value="Chennai">
+            <option value="Pune">
+            <option value="Ahmedabad">
+            <option value="Jaipur">
+            <option value="Lucknow">
+            <option value="Surat">
+            <option value="New York">
+            <option value="Los Angeles">
+            <option value="London">
+            <option value="Toronto">
+            <option value="Sydney">
+            <option value="Dubai">
+        </datalist>
+    </div>
+      <div class="form-group">
+  <label>Country</label>
+  <input type="text" name="country" id="f_country" placeholder="Type or select a country" list="country_list" autocomplete="off" />
+  <datalist id="country_list">
+    <option value="India">
+    <option value="USA">
+    <option value="UK">
+    <option value="Canada">
+    <option value="Australia">
+    <option value="Germany">
+    <option value="France">
+    <option value="UAE">
+    <option value="Singapore">
+    <option value="Japan">
+    <option value="China">
+    <option value="Brazil">
+    <option value="South Africa">
+    <option value="New Zealand">
+    <option value="Italy">
+    <option value="Spain">
+    <option value="Netherlands">
+    <option value="Sweden">
+    <option value="Bangladesh">
+    <option value="Sri Lanka">
+    <option value="Nepal">
+  </datalist>
+</div>
+      <div class="form-group">
+        <label>Aadhar No</label>
+        <input type="text" name="aadhar_no" id="f_aadhar" placeholder="Max 12 digits" maxlength="12" />
+      </div>
+      <div class="form-group">
+        <label>Pan No</label>
+        <input type="text" name="pan_no" id="f_pan" placeholder="Alphanumeric" maxlength="12" />
+      </div>
+      <div class="form-group">
+        <label>Contact (10 digits)</label>
+        <input type="text" name="contact" id="f_contact"
+                placeholder="10-digit mobile number"
+                maxlength="10"
+                inputmode="numeric" />
+      </div>
+      <div class="form-group">
+        <label>Card No</label>
+        <input type="text" name="card_no" id="f_card" placeholder="Max 12 digits" maxlength="12" />
+      </div>
+      <div class="form-group">
+        <label>Pin No</label>
+        <input type="text" name="pin_no" id="f_pin" placeholder="4 digits" maxlength="4" />
+      </div>
+      <div class="form-group">
+        <label>Bank ID</label>
+        <input type="text" name="bank_id" id="f_bankid" placeholder="Alphanumeric" />
+      </div>
+      <div class="form-group">
+        <label>Amount (min ₹1000)</label>
+        <input type="number" name="amount" id="f_amount" placeholder="1000" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select name="gender" id="f_gender">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-add" id="addBtn">＋ ADD RECORD</button>
+      <button type="button" class="btn btn-update" onclick="submitUpdate()">✎ UPDATE</button>
+      <button type="button" class="btn btn-clear" onclick="clearForm()">✕ CLEAR</button>
+    </div>
+  </form>
+
+  <!-- Hidden update form -->
+  <form method="POST" action="/update" id="updateForm" style="display:none;">
+    <input type="hidden" name="name"       id="u_name" />
+    <input type="hidden" name="address"    id="u_address" />
+    <input type="hidden" name="email"      id="u_email" />
+    <input type="hidden" name="age"        id="u_age" />
+    <input type="hidden" name="city"       id="u_city" />
+    <input type="hidden" name="country"    id="u_country" />
+    <input type="hidden" name="aadhar_no"  id="u_aadhar" />
+    <input type="hidden" name="pan_no"     id="u_pan" />
+    <input type="hidden" name="contact"    id="u_contact" />
+    <input type="hidden" name="card_no"    id="u_card" />
+    <input type="hidden" name="pin_no"     id="u_pin" />
+    <input type="hidden" name="bank_id"    id="u_bankid" />
+    <input type="hidden" name="amount"     id="u_amount" />
+    <input type="hidden" name="gender"     id="u_gender" />
+  </form>
+</div>
+
+<!-- TABLE -->
+<div class="table-card">
+  <h2>📊 All Records</h2>
+  <div class="table-wrap">
+    {% if records %}
+    <div style="padding: 16px 24px; border-bottom: 1px solid #eee; display:flex; align-items:center; gap:12px;">
+  <input 
+    type="text" 
+    id="searchBar" 
+    onkeyup="searchTable()" 
+    placeholder="🔍  Search by any field — name, city, bank ID..." 
+    style="width:100%; padding:10px 16px; border:2px solid #ddd; border-radius:8px; font-size:14px; outline:none; transition: border 0.3s;"
+    onfocus="this.style.borderColor='#17B2E2'"
+    onblur="this.style.borderColor='#ddd'"
+  />
+  <span id="recordCount" style="white-space:nowrap; font-size:13px; color:#888;"></span>
+</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Address</th><th>Email</th><th>Age</th>
+          <th>City</th><th>Country</th><th>Aadhar No</th><th>Pan No</th>
+          <th>Contact</th><th>Card No</th><th>Pin No</th><th>Bank ID</th>
+          <th>Amount</th><th>Gender</th><th>Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+  {% for r in records %}
+  <tr id="row-{{ loop.index }}" onclick="fillForm({{ loop.index - 1 }})">
+    <td>{{ r.Name }}</td>
+    <td>{{ r.Address }}</td>
+    <td>{{ r.Email }}</td>
+    <td>{{ r.Age }}</td>
+    <td>{{ r.City }}</td>
+    <td>{{ r.Country }}</td>
+    <td>{{ r.Aadhar_No }}</td>
+    <td>{{ r.Pan_No }}</td>
+    <td>{{ r.Contact }}</td>
+    <td>{{ r.Card_No }}</td>
+    <td>{{ r.Pin_No }}</td>
+    <td>{{ r.Bank_ID }}</td>
+    <td>{{ r.Amount }}</td>
+    <td>{{ r.Gender }}</td>
+    <td>
+      <a href="/delete/{{ r.Bank_ID }}"
+         onclick="event.stopPropagation(); return confirm('Delete this record?')"
+         class="btn-delete">DELETE</a>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+    </table>
+    {% else %}
+      <p class="no-records">No records found. Add one above!</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  // ── ALL RECORDS STORED SAFELY IN JS ARRAY ─────────────────
+  var ALL_RECORDS = {{ records | tojson | safe }};
+
+
+  // ── CLICK ROW → FILL FORM ─────────────────────────────────
+  function fillForm(index) {
+    var r = ALL_RECORDS[index];
+    if (!r) {
+      alert("Could not load record. Please refresh the page.");
+      return;
+    }
+
+    // Map field IDs to record keys
+    var mapping = [
+      ['f_name',    r.Name],
+      ['f_address', r.Address],
+      ['f_email',   r.Email],
+      ['f_age',     r.Age],
+      ['f_city',    r.City],
+      ['f_country', r.Country],
+      ['f_aadhar',  r.Aadhar_No],
+      ['f_pan',     r.Pan_No],
+      ['f_contact', r.Contact],
+      ['f_card',    r.Card_No],
+      ['f_pin',     r.Pin_No],
+      ['f_bankid',  r.Bank_ID],
+      ['f_amount',  r.Amount],
+      ['f_gender',  r.Gender]
+    ];
+
+    mapping.forEach(function(pair) {
+      var el = document.getElementById(pair[0]);
+      if (el) {
+        el.value = (pair[1] !== null && pair[1] !== undefined) ? pair[1] : '';
+      }
+    });
+
+    // Highlight selected row
+    document.querySelectorAll('tbody tr').forEach(function(tr) {
+      tr.style.background = '';
+      tr.style.fontWeight = 'normal';
+    });
+    var selectedRow = document.getElementById('row-' + (index + 1));
+    if (selectedRow) {
+      selectedRow.style.background = '#cce9f9';
+      selectedRow.style.fontWeight = '600';
+    }
+
+    // Scroll to form smoothly
+    var formCard = document.querySelector('.form-card');
+    if (formCard) {
+      formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      formCard.style.transition = 'box-shadow 0.4s';
+      formCard.style.boxShadow  = '0 0 0 3px #17B2E2';
+      setTimeout(function() {
+        formCard.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
+      }, 1400);
+    }
+  }
+
+
+  // ── SEARCH TABLE ───────────────────────────────────────────
+  function searchTable() {
+    var query  = document.getElementById('searchBar').value.toLowerCase().trim();
+    var rows   = document.querySelectorAll('tbody tr');
+    var visible = 0;
+
+    rows.forEach(function(row) {
+      if (row.id === 'noResults') return;
+      var text  = row.innerText.toLowerCase();
+      var match = text.includes(query);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    var total   = ALL_RECORDS.length;
+    var countEl = document.getElementById('recordCount');
+    if (countEl) {
+      if (query === '') {
+        countEl.textContent = total + ' record' + (total !== 1 ? 's' : '');
+        countEl.style.color = '#888';
+      } else {
+        countEl.textContent = visible + ' of ' + total + ' match' + (visible !== 1 ? 'es' : '');
+        countEl.style.color = visible === 0 ? '#e74c3c' : '#27ae60';
+      }
+    }
+
+    var noMsg = document.getElementById('noResults');
+    if (visible === 0 && query !== '') {
+      if (!noMsg) {
+        noMsg = document.createElement('tr');
+        noMsg.id = 'noResults';
+        noMsg.innerHTML = '<td colspan="15" style="text-align:center; padding:30px; color:#aaa; font-size:15px;">'
+          + '😕 No records found for &ldquo;<strong>' + query + '</strong>&rdquo;</td>';
+        document.querySelector('tbody').appendChild(noMsg);
+      }
+    } else {
+      if (noMsg) noMsg.remove();
+    }
+  }
+
+
+  // ── UPDATE SUBMIT ──────────────────────────────────────────
+  function submitUpdate() {
+    var pairs = [
+      ['f_name','u_name'],       ['f_address','u_address'],
+      ['f_email','u_email'],     ['f_age','u_age'],
+      ['f_city','u_city'],       ['f_country','u_country'],
+      ['f_aadhar','u_aadhar'],   ['f_pan','u_pan'],
+      ['f_contact','u_contact'], ['f_card','u_card'],
+      ['f_pin','u_pin'],         ['f_bankid','u_bankid'],
+      ['f_amount','u_amount'],   ['f_gender','u_gender']
+    ];
+
+    pairs.forEach(function(pair) {
+      var src = document.getElementById(pair[0]);
+      var dst = document.getElementById(pair[1]);
+      if (src && dst) dst.value = src.value;
+    });
+
+    var bankId = document.getElementById('u_bankid').value;
+    if (!bankId) {
+      alert('⚠️  Please click a record from the table below first to select it.');
+      return;
+    }
+    if (confirm('Confirm update for Bank ID: ' + bankId + '?')) {
+      document.getElementById('updateForm').submit();
+    }
+  }
+
+
+  // ── CLEAR FORM ─────────────────────────────────────────────
+  function clearForm() {
+    ['f_name','f_address','f_email','f_age','f_aadhar',
+     'f_pan','f_contact','f_card','f_pin','f_bankid',
+     'f_amount','f_city','f_country'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    var g = document.getElementById('f_gender');
+    if (g) g.value = 'Male';
+
+    document.querySelectorAll('tbody tr').forEach(function(tr) {
+      tr.style.background = '';
+      tr.style.fontWeight = 'normal';
+    });
+
+    var formCard = document.querySelector('.form-card');
+    if (formCard) formCard.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
+  }
+
+
+  // ── CONTACT: ONLY 10 DIGITS ────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+
+    // Record count on load
+    var countEl = document.getElementById('recordCount');
+    if (countEl) {
+      var total = ALL_RECORDS.length;
+      countEl.textContent = total + ' record' + (total !== 1 ? 's' : '');
+    }
+
+    // Contact field — numbers only, max 10
+    var contactField = document.getElementById('f_contact');
+    if (contactField) {
+
+      // Block non-digit keys
+      contactField.addEventListener('keypress', function(e) {
+        if (!/[0-9]/.test(e.key)) {
+          e.preventDefault();
+        }
+      });
+
+      // Enforce max 10 on paste
+      contactField.addEventListener('paste', function(e) {
+        e.preventDefault();
+        var pasted = (e.clipboardData || window.clipboardData).getData('text');
+        var digits = pasted.replace(/\D/g, '').slice(0, 10);
+        this.value = digits;
+      });
+
+      // Validate exactly 10 on blur (when user leaves the field)
+      contactField.addEventListener('blur', function() {
+        var val = this.value.trim();
+        if (val.length > 0 && val.length !== 10) {
+          this.style.borderColor = '#e74c3c';
+          this.style.boxShadow   = '0 0 0 2px rgba(231,76,60,0.25)';
+          showContactError('Contact number must be exactly 10 digits.');
+        } else {
+          this.style.borderColor = '#27ae60';
+          this.style.boxShadow   = '0 0 0 2px rgba(39,174,96,0.2)';
+          hideContactError();
+        }
+      });
+
+      // Clear error styling while typing
+      contactField.addEventListener('input', function() {
+        this.style.borderColor = '#ddd';
+        this.style.boxShadow   = 'none';
+        hideContactError();
+        // Hard-block beyond 10 chars
+        if (this.value.length > 10) {
+          this.value = this.value.slice(0, 10);
+        }
+      });
+    }
+  });
+
+  function showContactError(msg) {
+    var err = document.getElementById('contactError');
+    if (!err) {
+      err = document.createElement('small');
+      err.id = 'contactError';
+      err.style.cssText = 'color:#e74c3c; font-size:11px; margin-top:4px; display:block;';
+      var contactField = document.getElementById('f_contact');
+      contactField.parentNode.appendChild(err);
+    }
+    err.textContent = '⚠ ' + msg;
+  }
+
+  function hideContactError() {
+    var err = document.getElementById('contactError');
+    if (err) err.remove();
+  }
+</script>
+
+</body>
+</html>
