@@ -95,13 +95,22 @@ def add_record():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    email = request.form.get("email", "")
-    age   = request.form.get("age", "0")
-    amount = request.form.get("amount", "0")
-    pan   = request.form.get("pan_no", "")
-    bank_id = request.form.get("bank_id", "")
-    pin   = request.form.get("pin_no", "")
+    email    = request.form.get("email", "")
+    age      = request.form.get("age", "0")
+    amount   = request.form.get("amount", "0")
+    pan      = request.form.get("pan_no", "")
+    bank_id  = request.form.get("bank_id", "")
+    pin      = request.form.get("pin_no", "")
+    card     = request.form.get("card_no", "")
+    confirm_card = request.form.get("confirm_card_no", "")
+    confirm_pin  = request.form.get("confirm_pin_no", "")
 
+    if card != confirm_card:
+        flash("Card numbers do not match.", "error")
+        return redirect(url_for("dashboard"))
+    if pin != confirm_pin:
+        flash("PIN numbers do not match.", "error")
+        return redirect(url_for("dashboard"))
     # Validations
     email_pattern = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
     if not re.search(email_pattern, email):
@@ -110,11 +119,17 @@ def add_record():
     if int(age) < 18:
         flash("Age must be 18 or above.", "error")
         return redirect(url_for("dashboard"))
-    if int(amount) < 1000:
-        flash("Minimum deposit is 1000.", "error")
+    if int(amount) < 1000 or int(amount) > 1000000:
+        flash("Amount must be between ₹1,000 and ₹10,00,000.", "error")
         return redirect(url_for("dashboard"))
     if pan.isdigit() or bank_id.isdigit():
         flash("Pan No and Bank ID must be alphanumeric.", "error")
+        return redirect(url_for("dashboard"))
+    if len(bank_id) > 6:
+        flash("Bank ID must be maximum 6 characters.", "error")
+        return redirect(url_for("dashboard"))
+    if not bank_id.isalnum():
+        flash("Bank ID must be alphanumeric only (letters and numbers).", "error")
         return redirect(url_for("dashboard"))
     if len(pin) != 4 or not pin.isdigit():
         flash("Pin must be exactly 4 digits.", "error")
@@ -157,7 +172,26 @@ def update_record():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    bank_id = request.form.get("bank_id")
+    bank_id = request.form.get("bank_id", "")
+    amount  = request.form.get("amount", "0")
+
+    # ── Amount validation ──
+    if int(amount) < 1000 or int(amount) > 1000000:
+        flash("Amount must be between ₹1,000 and ₹10,00,000.", "error")
+        return redirect(url_for("dashboard"))
+
+    # ── Bank ID validation ──
+    if len(bank_id) > 6:
+        flash("Bank ID must be maximum 6 characters.", "error")
+        return redirect(url_for("dashboard"))
+    if not bank_id.isalnum():
+        flash("Bank ID must be alphanumeric only.", "error")
+        return redirect(url_for("dashboard"))
+    if bank_id.isdigit():
+        flash("Bank ID must contain at least one letter.", "error")
+        return redirect(url_for("dashboard"))
+
+    # Card_No and Pin_No are excluded — they cannot be updated
     data = {
         "Name":      request.form.get("name"),
         "Address":   request.form.get("address"),
@@ -168,8 +202,6 @@ def update_record():
         "Aadhar_No": request.form.get("aadhar_no"),
         "Pan_No":    request.form.get("pan_no"),
         "Contact":   request.form.get("contact"),
-        "Card_No":   request.form.get("card_no"),
-        "Pin_No":    request.form.get("pin_no"),
         "Amount":    request.form.get("amount"),
         "Gender":    request.form.get("gender"),
     }
@@ -210,4 +242,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=7860, debug=False)
