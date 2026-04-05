@@ -218,21 +218,37 @@
                 maxlength="10"
                 inputmode="numeric" />
       </div>
+    <div class="form-group">
+      <label>Card No</label>
+      <input type="text" name="card_no" id="f_card"
+            placeholder="Max 12 digits" maxlength="12" />
+    </div>
+    <div class="form-group" id="confirmCardGroup">
+      <label>Confirm Card No</label>
+      <input type="text" name="confirm_card_no" id="f_confirm_card"
+            placeholder="Re-enter card number" maxlength="12" />
+    </div>
+    <div class="form-group">
+      <label>Pin No</label>
+      <input type="text" name="pin_no" id="f_pin"
+            placeholder="4 digits" maxlength="4" />
+    </div>
+    <div class="form-group" id="confirmPinGroup">
+      <label>Confirm Pin No</label>
+      <input type="text" name="confirm_pin_no" id="f_confirm_pin"
+            placeholder="Re-enter PIN" maxlength="4" />
+    </div>
       <div class="form-group">
-        <label>Card No</label>
-        <input type="text" name="card_no" id="f_card" placeholder="Max 12 digits" maxlength="12" />
+        <label>Bank ID (max 6 chars)</label>
+        <input type="text" name="bank_id" id="f_bankid"
+              placeholder="e.g. AB1234"
+              maxlength="6" />
       </div>
       <div class="form-group">
-        <label>Pin No</label>
-        <input type="text" name="pin_no" id="f_pin" placeholder="4 digits" maxlength="4" />
-      </div>
-      <div class="form-group">
-        <label>Bank ID</label>
-        <input type="text" name="bank_id" id="f_bankid" placeholder="Alphanumeric" />
-      </div>
-      <div class="form-group">
-        <label>Amount (min ₹1000)</label>
-        <input type="number" name="amount" id="f_amount" placeholder="1000" min="0" />
+        <label>Amount (₹1,000 – ₹10,00,000)</label>
+        <input type="number" name="amount" id="f_amount"
+              placeholder="Min 1000, Max 1000000"
+              min="1000" max="1000000" />
       </div>
       <div class="form-group">
         <label>Gender</label>
@@ -305,11 +321,11 @@
     <td>{{ r.Age }}</td>
     <td>{{ r.City }}</td>
     <td>{{ r.Country }}</td>
-    <td>{{ r.Aadhar_No }}</td>
-    <td>{{ r.Pan_No }}</td>
+    <td>****{{ r.Aadhar_No[-4:] if r.Aadhar_No else '----' }}</td>
+    <td>****{{ r.Pan_No[-4:] if r.Pan_No else '----' }}</td>
     <td>{{ r.Contact }}</td>
-    <td>{{ r.Card_No }}</td>
-    <td>{{ r.Pin_No }}</td>
+    <td>********{{ r.Card_No[-4:] if r.Card_No else '----' }}</td>
+    <td>****</td>
     <td>{{ r.Bank_ID }}</td>
     <td>{{ r.Amount }}</td>
     <td>{{ r.Gender }}</td>
@@ -342,6 +358,13 @@
     }
 
     // Map field IDs to record keys
+    // ── Mask sensitive values exactly like the table shows ──
+    var maskedCard  = r.Card_No  ? '********' + String(r.Card_No).slice(-4)  : '';
+    var maskedAadhar= r.Aadhar_No? '****'     + String(r.Aadhar_No).slice(-4): '';
+    var maskedPan   = r.Pan_No   ? '****'     + String(r.Pan_No).slice(-4)   : '';
+    var maskedPin   = r.Pin_No   ? '****'                                     : '';
+
+    // Map field IDs to record keys
     var mapping = [
       ['f_name',    r.Name],
       ['f_address', r.Address],
@@ -349,11 +372,11 @@
       ['f_age',     r.Age],
       ['f_city',    r.City],
       ['f_country', r.Country],
-      ['f_aadhar',  r.Aadhar_No],
-      ['f_pan',     r.Pan_No],
+      ['f_aadhar',  maskedAadhar],
+      ['f_pan',     maskedPan],
       ['f_contact', r.Contact],
-      ['f_card',    r.Card_No],
-      ['f_pin',     r.Pin_No],
+      ['f_card',    maskedCard],
+      ['f_pin',     maskedPin],
       ['f_bankid',  r.Bank_ID],
       ['f_amount',  r.Amount],
       ['f_gender',  r.Gender]
@@ -366,6 +389,31 @@
       }
     });
 
+    // ── Card and PIN become readonly when editing existing record ──
+    var cardEl = document.getElementById('f_card');
+    var pinEl  = document.getElementById('f_pin');
+
+    cardEl.readOnly = true;
+    cardEl.style.background = '#e8e8e8';
+    cardEl.style.color      = '#999';
+    cardEl.title            = 'Card number cannot be changed';
+
+    pinEl.readOnly  = true;
+    pinEl.style.background  = '#e8e8e8';
+    pinEl.style.color       = '#999';
+    pinEl.title             = 'PIN cannot be changed';
+
+    // ── Hide confirm fields — not needed when editing ──
+    var confirmCardGroup = document.getElementById('confirmCardGroup');
+    var confirmPinGroup  = document.getElementById('confirmPinGroup');
+    if (confirmCardGroup) confirmCardGroup.style.display = 'none';
+    if (confirmPinGroup)  confirmPinGroup.style.display  = 'none';
+
+    // Clear confirm field values so they don't interfere
+    var cc = document.getElementById('f_confirm_card');
+    var cp = document.getElementById('f_confirm_pin');
+    if (cc) cc.value = '';
+    if (cp) cp.value = '';
     // Highlight selected row
     document.querySelectorAll('tbody tr').forEach(function(tr) {
       tr.style.background = '';
@@ -464,10 +512,25 @@
   function clearForm() {
     ['f_name','f_address','f_email','f_age','f_aadhar',
      'f_pan','f_contact','f_card','f_pin','f_bankid',
-     'f_amount','f_city','f_country'].forEach(function(id) {
+     'f_amount','f_city','f_country',
+     'f_confirm_card','f_confirm_pin'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
+
+    // Restore card and PIN fields to editable for new entry
+    var cardEl = document.getElementById('f_card');
+    var pinEl  = document.getElementById('f_pin');
+    cardEl.readOnly = false;
+    cardEl.style.background = '';
+    cardEl.style.color      = '';
+    pinEl.readOnly  = false;
+    pinEl.style.background  = '';
+    pinEl.style.color       = '';
+
+    // Show confirm fields again for new entry
+    document.getElementById('confirmCardGroup').style.display = '';
+    document.getElementById('confirmPinGroup').style.display  = '';
     var g = document.getElementById('f_gender');
     if (g) g.value = 'Male';
 
