@@ -219,24 +219,30 @@
                 inputmode="numeric" />
       </div>
     <div class="form-group">
-      <label>Card No</label>
+      <label>Card No <span style="color:#27ae60; font-size:10px; font-weight:600;">(Click field to generate)</span></label>
       <input type="text" name="card_no" id="f_card"
-            placeholder="Max 12 digits" maxlength="12" />
+            placeholder="🖱 Click here to auto-generate" maxlength="12"
+            readonly
+            onclick="generateCardAndPin()"
+            style="background:#f0f8ff; color:#2980B9; font-weight:600; letter-spacing:1px; cursor:pointer;" />
+      <small id="cardGenNote" style="color:#27ae60; font-size:11px; margin-top:4px; display:none;">✔ Card &amp; PIN generated — confirm both below.</small>
     </div>
     <div class="form-group" id="confirmCardGroup">
       <label>Confirm Card No</label>
       <input type="text" name="confirm_card_no" id="f_confirm_card"
-            placeholder="Re-enter card number" maxlength="12" />
+            placeholder="Re-enter the generated card number" maxlength="12" />
     </div>
     <div class="form-group">
-      <label>Pin No</label>
+      <label>Pin No <span style="color:#27ae60; font-size:10px; font-weight:600;">(Auto-Generated)</span></label>
       <input type="text" name="pin_no" id="f_pin"
-            placeholder="4 digits" maxlength="4" />
+            placeholder="Generated with Card No" maxlength="4"
+            readonly
+            style="background:#f0f8ff; color:#2980B9; font-weight:600; letter-spacing:4px;" />
     </div>
     <div class="form-group" id="confirmPinGroup">
       <label>Confirm Pin No</label>
       <input type="text" name="confirm_pin_no" id="f_confirm_pin"
-            placeholder="Re-enter PIN" maxlength="4" />
+            placeholder="Re-enter the generated PIN" maxlength="4" />
     </div>
       <div class="form-group">
         <label>Bank ID (max 6 chars)</label>
@@ -508,6 +514,42 @@
   }
 
 
+  // ── AUTO-GENERATE CARD (12 digits) & PIN (4 digits) ───────
+  function generateCardAndPin() {
+    // Generate unique 12-digit card number
+    var card = '';
+    for (var i = 0; i < 12; i++) {
+      card += Math.floor(Math.random() * 10).toString();
+    }
+    // Generate unique 4-digit PIN
+    var pin = '';
+    for (var j = 0; j < 4; j++) {
+      pin += Math.floor(Math.random() * 10).toString();
+    }
+
+    var cardEl = document.getElementById('f_card');
+    var pinEl  = document.getElementById('f_pin');
+    var ccEl   = document.getElementById('f_confirm_card');
+    var cpEl   = document.getElementById('f_confirm_pin');
+    var noteEl = document.getElementById('cardGenNote');
+
+    cardEl.value = card;
+    pinEl.value  = pin;
+
+    // Clear confirm fields so user must re-enter
+    if (ccEl) ccEl.value = '';
+    if (cpEl) cpEl.value = '';
+    if (ccEl) ccEl.placeholder = 'Re-enter: ' + card;
+    if (cpEl) cpEl.placeholder = 'Re-enter: ' + pin;
+
+    // Show hint note
+    if (noteEl) noteEl.style.display = 'block';
+
+    // Focus confirm card field
+    if (ccEl) ccEl.focus();
+  }
+
+
   // ── CLEAR FORM ─────────────────────────────────────────────
   function clearForm() {
     ['f_name','f_address','f_email','f_age','f_aadhar',
@@ -518,15 +560,28 @@
       if (el) el.value = '';
     });
 
-    // Restore card and PIN fields to editable for new entry
+    // Reset card and PIN fields to auto-gen placeholders
     var cardEl = document.getElementById('f_card');
     var pinEl  = document.getElementById('f_pin');
-    cardEl.readOnly = false;
-    cardEl.style.background = '';
-    cardEl.style.color      = '';
-    pinEl.readOnly  = false;
-    pinEl.style.background  = '';
-    pinEl.style.color       = '';
+    cardEl.readOnly = true;
+    cardEl.style.background = '#f0f8ff';
+    cardEl.style.color      = '#2980B9';
+    cardEl.style.cursor     = 'pointer';
+    cardEl.placeholder      = '🖱 Click here to auto-generate';
+    pinEl.readOnly  = true;
+    pinEl.style.background  = '#f0f8ff';
+    pinEl.style.color       = '#2980B9';
+    pinEl.placeholder       = 'Generated with Card No';
+
+    // Reset confirm placeholders
+    var ccEl = document.getElementById('f_confirm_card');
+    var cpEl = document.getElementById('f_confirm_pin');
+    if (ccEl) ccEl.placeholder = 'Re-enter the generated card number';
+    if (cpEl) cpEl.placeholder = 'Re-enter the generated PIN';
+
+    // Hide gen note
+    var noteEl = document.getElementById('cardGenNote');
+    if (noteEl) noteEl.style.display = 'none';
 
     // Show confirm fields again for new entry
     document.getElementById('confirmCardGroup').style.display = '';
