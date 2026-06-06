@@ -6,7 +6,7 @@
 ![Status](https://img.shields.io/badge/Status-Live-brightgreen)
 
 ## 🔗 Live Demo
-## 👉 [Click Here to Open the App](https://alphacoder7206-bank-management.hf.space)
+## 👉 [Click Here to Open the App](https://bank-management-web.onrender.com)
 
 ---
 
