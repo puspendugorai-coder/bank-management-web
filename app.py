@@ -105,8 +105,16 @@ def add_record():
     confirm_card = request.form.get("confirm_card_no", "")
     confirm_pin  = request.form.get("confirm_pin_no", "")
 
+    # Validate auto-generated card (must be exactly 12 digits)
+    if not card or not card.isdigit() or len(card) != 12:
+        flash("Card number must be auto-generated (click the Generate button).", "error")
+        return redirect(url_for("dashboard"))
     if card != confirm_card:
         flash("Card numbers do not match.", "error")
+        return redirect(url_for("dashboard"))
+    # Validate auto-generated PIN (must be exactly 4 digits)
+    if not pin or not pin.isdigit() or len(pin) != 4:
+        flash("PIN must be auto-generated (click the Generate button).", "error")
         return redirect(url_for("dashboard"))
     if pin != confirm_pin:
         flash("PIN numbers do not match.", "error")
@@ -130,9 +138,6 @@ def add_record():
         return redirect(url_for("dashboard"))
     if not bank_id.isalnum():
         flash("Bank ID must be alphanumeric only (letters and numbers).", "error")
-        return redirect(url_for("dashboard"))
-    if len(pin) != 4 or not pin.isdigit():
-        flash("Pin must be exactly 4 digits.", "error")
         return redirect(url_for("dashboard"))
     contact = request.form.get("contact", "")
     if len(contact) != 10 or not contact.isdigit():
