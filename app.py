@@ -1,16 +1,25 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from supabase import create_client, Client
 import os, re
+from dotenv import load_dotenv
+
+# Load variables from the local .env file
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"  # Change this to any random string
 
-# --- SUPABASE CONFIG (use environment variables for safety) ---
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://bryhzndcduqvfnjhgeub.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyeWh6bmRjZHVxdmZuamhnZXViIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTI4NjY2NSwiZXhwIjoyMDkwODYyNjY1fQ.Vg2c_mQTAQzBH9dsMdOh8WtetBuGKtQY4dnDolipma0")  
+# Fallback on a static string only during local testing if env is missing
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "temporary-local-dev-string-123")
+
+# --- SUPABASE CONFIG (Now fully dynamic) ---
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+# Safety validation check before initializing client
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("Missing Supabase Environmental variables! Check your configuration keys.")
+
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-
 # ─────────────────────────────────────────
 # LOGIN
 # ─────────────────────────────────────────
