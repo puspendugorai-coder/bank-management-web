@@ -1,2 +1,5 @@
 flask
 supabase
+python-dotenv
+bcrypt
+reportlab
