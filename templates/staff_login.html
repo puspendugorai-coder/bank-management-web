@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{ label }} Portal — PG BANK</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#081A33; --gold:#C9A24B; --gold-light:#E4C77A;
+    --ivory:#F7F5F0; --slate:#5B6B82; --red:#D8534A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:linear-gradient(160deg, var(--navy-deep), var(--navy) 60%);
+    font-family:'Segoe UI', Tahoma, sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:380px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(201,162,75,0.3);
+    border-radius:16px;
+    padding:44px 36px;
+    text-align:center;
+    color:var(--ivory);
+    box-shadow:0 30px 70px rgba(0,0,0,0.4);
+  }
+  .icon{
+    width:54px;height:54px;border-radius:50%;
+    border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;margin:0 auto 18px;
+    background:rgba(201,162,75,0.08);
+  }
+  h1{
+    font-family:Georgia, serif;
+    font-size:20px;letter-spacing:1px;margin-bottom:6px;
+  }
+  p.sub{
+    font-size:12px;color:var(--slate);letter-spacing:1.5px;
+    text-transform:uppercase;margin-bottom:28px;
+  }
+  .flash{
+    padding:10px 14px;border-radius:8px;margin-bottom:18px;
+    font-size:13px;text-align:left;
+  }
+  .flash.error{ background:rgba(216,83,74,0.15); color:#FFB4AE; border-left:3px solid var(--red); }
+  .flash.success{ background:rgba(31,138,85,0.15); color:#9be8c2; border-left:3px solid #1F8A55; }
+
+  label{
+    display:block;text-align:left;font-size:11px;font-weight:600;
+    letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-light);
+    margin-bottom:8px;
+  }
+  input[type="password"], input[type="text"]{
+    width:100%;padding:14px 16px;
+    background:rgba(255,255,255,0.06);
+    border:1.5px solid rgba(255,255,255,0.15);
+    border-radius:9px;color:var(--ivory);
+    font-size:20px;letter-spacing:6px;text-align:center;
+    outline:none;transition:border 0.25s;
+  }
+  input:focus{ border-color:var(--gold); }
+  input::placeholder{ letter-spacing:1px; font-size:13px; color:#7c8aa0; }
+
+  .btn-enter{
+    width:100%;margin-top:22px;padding:13px;
+    background:var(--gold);color:var(--navy-deep);
+    font-weight:bold;letter-spacing:2px;font-size:14px;
+    border:none;border-radius:9px;cursor:pointer;
+    transition:background 0.25s;
+  }
+  .btn-enter:hover{ background:var(--gold-light); }
+
+  .back-link{
+    display:block;margin-top:20px;font-size:12.5px;
+    color:var(--slate);text-decoration:none;
+  }
+  .back-link:hover{ color:var(--gold-light); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🔐</div>
+    <h1>{{ label }} Portal</h1>
+    <p class="sub">Restricted Staff Access</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('staff_login', portal=portal) }}">
+      {% if portal == 'cashier' %}
+      <label for="cashier_name" style="text-align:left; display:block; font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-light); margin-bottom:8px;">Cashier Name / ID</label>
+      <input type="text" id="cashier_name" name="cashier_name" placeholder="e.g. Tom, CSH-01"
+             style="width:100%; padding:12px 14px; background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.15); border-radius:9px; color:var(--ivory); font-size:14px; outline:none; margin-bottom:18px;" required autofocus />
+      {% endif %}
+      <label for="code">Access Code</label>
+      <input type="password" id="code" name="code" placeholder="Enter your 4-digit code" maxlength="12" required {% if portal != 'cashier' %}autofocus{% endif %} />
+      <button type="submit" class="btn-enter">UNLOCK PORTAL</button>
+    </form>
+
+    <a href="{{ url_for('home') }}" class="back-link">← Back to portal selection</a>
+  </div>
+</body>
+</html>

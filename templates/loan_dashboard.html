@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Loan Manager Portal — PG BANK</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#081A33; --gold:#C9A24B; --gold-light:#E4C77A;
+    --ivory:#F7F5F0; --slate:#5B6B82; --green:#1F8A55; --red:#D8534A; --bg:#F4F6FA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--bg); font-family:'Segoe UI', Tahoma, sans-serif; color:#1c2733; }
+
+  header{
+    background:linear-gradient(90deg, var(--navy-deep), var(--navy));
+    color:var(--ivory); padding:18px 32px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  }
+  header .brand{ display:flex; align-items:center; gap:12px; }
+  header .brand .crest{ width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center;font-size:16px; }
+  header h1{ font-size:16px; letter-spacing:2px; font-family:Georgia, serif; }
+  header .role-tag{ font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-light); }
+  header span.user{ font-size:13px; opacity:0.85; }
+  .logout-btn{ background:var(--red); color:white; border:none; padding:8px 18px; border-radius:7px; cursor:pointer; font-weight:bold; text-decoration:none; font-size:12.5px; }
+  .logout-btn:hover{ background:#b8413a; }
+
+  .flash-wrap{ padding:14px 32px 0; }
+  .flash{ padding:11px 16px; border-radius:9px; font-size:13.5px; margin-bottom:10px; }
+  .flash.error{ background:#fdecea; color:#c0392b; border-left:4px solid var(--red); }
+  .flash.success{ background:#eafaf1; color:#1e8449; border-left:4px solid var(--green); }
+
+  .form-card{
+    background:white; margin:22px 32px; border-radius:14px; padding:30px 32px;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+  .section-title{ font-size:13px; color:var(--navy); letter-spacing:1.8px; text-transform:uppercase; font-weight:700; margin-bottom:4px; }
+  .section-sub{ font-size:11.5px; color:var(--slate); margin-bottom:20px; }
+
+  .form-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px; }
+  .form-group{ display:flex; flex-direction:column; }
+  .form-group label{ font-size:11.5px; font-weight:600; color:#46566b; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; }
+  .form-group input{ padding:10px 12px; border:1.5px solid #dde3ec; border-radius:8px; font-size:14px; outline:none; transition:border 0.25s; }
+  .form-group input:focus{ border-color:var(--navy); }
+
+  .tenure-row{ display:flex; gap:10px; }
+  .tenure-row .form-group{ flex:1; }
+
+  .emi-preview{
+    margin-top:22px; background:linear-gradient(135deg, var(--navy-deep), var(--navy));
+    border-radius:12px; padding:22px 26px; color:white;
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:18px;
+  }
+  .emi-preview .item .lbl{ font-size:10px; letter-spacing:1.5px; text-transform:uppercase; opacity:0.65; margin-bottom:4px; }
+  .emi-preview .item .val{ font-size:19px; font-weight:700; color:var(--gold-light); font-family:Georgia, serif; }
+
+  .btn-row{ margin-top:24px; }
+  .btn{ padding:12px 26px; border:none; border-radius:8px; font-size:13.5px; font-weight:bold; cursor:pointer; letter-spacing:1px; }
+  .btn-grant{ background:var(--green); color:white; }
+  .btn-grant:hover{ opacity:0.88; }
+
+  .table-card{
+    background:white; margin:0 32px 32px; border-radius:14px; overflow:hidden;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+  .table-card h2{ font-size:13px; color:var(--navy); letter-spacing:1.8px; text-transform:uppercase; padding:18px 24px; border-bottom:2px solid #f1e4c4; font-weight:700; }
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  thead tr{ background:var(--navy); color:var(--ivory); }
+  thead th{ padding:11px 14px; text-align:left; white-space:nowrap; font-size:11px; letter-spacing:0.6px; }
+  tbody tr{ border-bottom:1px solid #eef1f6; }
+  tbody tr:hover{ background:#f3f7fc; }
+  tbody td{ padding:10px 14px; white-space:nowrap; }
+  .no-records{ text-align:center; padding:30px; color:#aaa; font-size:15px; }
+
+  .badge{ padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:0.5px; }
+  .badge.active{ background:#eafaf1; color:#1e8449; }
+  .badge.closed{ background:#eef1f6; color:#5B6B82; }
+
+  .mini-btn{
+    padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700;
+    border:none; cursor:pointer; text-decoration:none; display:inline-block; margin-right:6px;
+  }
+  .mini-btn.deduct{ background:var(--gold); color:var(--navy-deep); }
+  .mini-btn.pdf{ background:var(--navy); color:white; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">🏦</div>
+    <div><h1>PG BANK</h1><div class="role-tag">Loan Manager Portal</div></div>
+  </div>
+  <span class="user">Logged in as <strong>{{ label }}</strong></span>
+  <a href="{{ url_for('logout') }}" class="logout-btn">LOGOUT</a>
+</header>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+  {% endwith %}
+</div>
+
+<div class="form-card">
+  <div class="section-title">📑 Grant New Loan</div>
+  <div class="section-sub">The customer must already be registered by a CSE. Aadhar &amp; PAN must match our records exactly.</div>
+
+  <!-- STEP 0: ACCOUNT LOOKUP -->
+  <div class="form-grid" style="margin-bottom:18px;">
+    <div class="form-group">
+      <label>Account Number</label>
+      <input type="text" id="l_account_lookup" placeholder="10-digit account no." maxlength="10" />
+    </div>
+    <div class="form-group" style="align-self:end;">
+      <button type="button" class="btn btn-navy" id="fetchBtn" onclick="fetchCustomer()" style="background:var(--navy); color:white;">🔍 FETCH CUSTOMER</button>
+    </div>
+  </div>
+
+  <div id="customerProfile" style="display:none; margin-bottom:22px;">
+    <div style="background:#f0f6ff; border:1.5px solid #cfe0f7; border-radius:12px; padding:18px 22px;">
+      <div style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--navy); font-weight:700; margin-bottom:10px;">✓ Customer Found</div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; font-size:13.5px;">
+        <div><strong id="cp_name">-</strong><br><span style="color:var(--slate); font-size:11.5px;">Name</span></div>
+        <div><span id="cp_address">-</span><br><span style="color:var(--slate); font-size:11.5px;">Address</span></div>
+        <div><span id="cp_city">-</span>, <span id="cp_country">-</span><br><span style="color:var(--slate); font-size:11.5px;">City / Country</span></div>
+        <div><span id="cp_contact">-</span><br><span style="color:var(--slate); font-size:11.5px;">Contact</span></div>
+        <div><span id="cp_balance">-</span><br><span style="color:var(--slate); font-size:11.5px;">Current Balance</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="notFoundMsg" style="display:none; margin-bottom:18px; padding:12px 16px; background:#fdecea; color:#c0392b; border-left:4px solid var(--red); border-radius:8px; font-size:13.5px;">
+    Customer is not registered. They must be onboarded by a CSE before a loan can be granted.
+  </div>
+
+  <form method="POST" action="{{ url_for('loan_grant') }}" id="loanForm" style="display:none;">
+    <input type="hidden" name="account_no" id="l_account" />
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Aadhar No</label>
+        <input type="text" name="aadhar_no" id="l_aadhar" placeholder="As per registration" maxlength="12" required />
+      </div>
+      <div class="form-group">
+        <label>Confirm Aadhar No</label>
+        <input type="text" id="l_aadhar_confirm" name="confirm_aadhar_no" placeholder="Re-enter Aadhar No" maxlength="12" required />
+      </div>
+      <div class="form-group">
+        <label>Pan No</label>
+        <input type="text" name="pan_no" id="l_pan" placeholder="As per registration" maxlength="12" required />
+      </div>
+      <div class="form-group">
+        <label>Confirm Pan No</label>
+        <input type="text" id="l_pan_confirm" name="confirm_pan_no" placeholder="Re-enter Pan No" maxlength="12" required />
+      </div>
+      <div class="form-group">
+        <label>Loan Amount (max ₹10,00,000)</label>
+        <input type="number" name="loan_amount" id="l_amount" placeholder="e.g. 250000" min="1" max="1000000" required />
+      </div>
+      <div class="form-group">
+        <label>Interest Rate (% p.a.)</label>
+        <input type="number" name="interest_rate" id="l_rate" placeholder="e.g. 9.5" min="0" step="0.01" required />
+      </div>
+      <div class="form-group tenure-row" style="grid-column: span 2;">
+        <div class="form-group">
+          <label>Tenure — Years</label>
+          <input type="number" name="years" id="l_years" placeholder="0" min="0" value="0" />
+        </div>
+        <div class="form-group">
+          <label>Tenure — Months</label>
+          <input type="number" name="months" id="l_months" placeholder="0" min="0" max="11" value="0" />
+        </div>
+      </div>
+    </div>
+
+    <small id="matchWarning" style="color:var(--red); display:none; margin-top:10px; display:block;">⚠ Aadhar / PAN confirmation does not match. Please re-check.</small>
+
+    <div class="emi-preview">
+      <div class="item"><div class="lbl">Total Tenure (months)</div><div class="val" id="prevTenure">0</div></div>
+      <div class="item"><div class="lbl">Total Interest</div><div class="val" id="prevInterest">₹0.00</div></div>
+      <div class="item"><div class="lbl">Total Payable</div><div class="val" id="prevTotal">₹0.00</div></div>
+      <div class="item"><div class="lbl">Monthly EMI</div><div class="val" id="prevEmi">₹0.00</div></div>
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-grant" id="grantBtn">✓ GRANT LOAN</button>
+    </div>
+  </form>
+</div>
+
+<div class="table-card">
+  <h2>📋 All Loan Accounts</h2>
+  <div style="padding: 16px 24px; border-bottom: 1px solid #eee; display:flex; align-items:center; gap:12px;">
+    <input type="text" id="loanSearchBar" onkeyup="searchLoanTable()" placeholder="🔍  Search by name, account no., bank ID, status..."
+           style="width:100%; padding:10px 16px; border:2px solid #ddd; border-radius:8px; font-size:14px; outline:none; transition: border 0.3s;"
+           onfocus="this.style.borderColor='#0B2545'" onblur="this.style.borderColor='#ddd'" />
+    <span id="loanRecordCount" style="white-space:nowrap; font-size:13px; color:#888;"></span>
+  </div>
+  <div class="table-wrap">
+    {% if loans %}
+    <table>
+      <thead>
+        <tr>
+          <th>Account No</th><th>Customer</th><th>Bank ID</th><th>Loan Amount</th><th>Rate</th><th>Tenure</th><th>EMI</th>
+          <th>Months Paid</th><th>Remaining</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in loans %}
+        <tr>
+          <td>{{ l.Account_No }}</td>
+          <td>{{ l.Customer_Name }}</td>
+          <td>{{ l.Bank_ID }}</td>
+          <td>₹{{ "{:,.2f}".format(l.Loan_Amount|float) }}</td>
+          <td>{{ l.Interest_Rate }}%</td>
+          <td>{{ l.Tenure_Months }} mo</td>
+          <td>₹{{ "{:,.2f}".format(l.EMI_Amount|float) }}</td>
+          <td>{{ l.Months_Paid }}/{{ l.Tenure_Months }}</td>
+          <td>₹{{ "{:,.2f}".format(l.Remaining_Amount|float) }}</td>
+          <td><span class="badge {{ 'active' if l.Status == 'ACTIVE' else 'closed' }}">{{ l.Status }}</span></td>
+          <td>
+            {% if l.Status == 'ACTIVE' %}
+            <form method="POST" action="{{ url_for('loan_deduct_emi', loan_id=l.id) }}" style="display:inline-flex; gap:6px; align-items:center;"
+                  onsubmit="return confirm('Deduct EMI for ' + this.months_to_deduct.value + ' month(s) from the customer balance?')">
+              <input type="number" name="months_to_deduct" min="1" max="{{ l.Tenure_Months - l.Months_Paid }}" value="1"
+                     style="width:52px; padding:5px 6px; border:1.5px solid #dde3ec; border-radius:6px; font-size:11.5px;" />
+              <button type="submit" class="mini-btn deduct">Deduct EMI</button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('loan_schedule_pdf', loan_id=l.id) }}" class="mini-btn pdf">PDF Schedule</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="no-records">No loans have been granted yet.</p>{% endif %}
+  </div>
+</div>
+
+<script>
+  function searchLoanTable() {
+    var query = document.getElementById('loanSearchBar').value.toLowerCase().trim();
+    var rows = document.querySelectorAll('.table-card tbody tr');
+    var visible = 0;
+    rows.forEach(function(row) {
+      var match = row.innerText.toLowerCase().includes(query);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    var total = rows.length;
+    var countEl = document.getElementById('loanRecordCount');
+    if (countEl) {
+      if (query === '') { countEl.textContent = total + ' loan' + (total !== 1 ? 's' : ''); countEl.style.color = '#888'; }
+      else { countEl.textContent = visible + ' of ' + total + ' match' + (visible !== 1 ? 'es' : ''); countEl.style.color = visible === 0 ? '#D8534A' : '#1F8A55'; }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var rows = document.querySelectorAll('.table-card tbody tr');
+    var countEl = document.getElementById('loanRecordCount');
+    if (countEl) { countEl.textContent = rows.length + ' loan' + (rows.length !== 1 ? 's' : ''); }
+  });
+
+  async function fetchCustomer() {
+    var accNo = document.getElementById('l_account_lookup').value.trim();
+    var profileBox = document.getElementById('customerProfile');
+    var notFoundBox = document.getElementById('notFoundMsg');
+    var loanForm = document.getElementById('loanForm');
+
+    profileBox.style.display = 'none';
+    notFoundBox.style.display = 'none';
+    loanForm.style.display = 'none';
+
+    if (!accNo) {
+      alert('Please enter an account number first.');
+      return;
+    }
+
+    var fetchBtn = document.getElementById('fetchBtn');
+    fetchBtn.disabled = true;
+    fetchBtn.textContent = 'Fetching...';
+
+    try {
+      var res = await fetch('/loan/lookup/' + encodeURIComponent(accNo));
+      var data = await res.json();
+
+      if (!data.found) {
+        notFoundBox.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('cp_name').textContent = data.name || '-';
+      document.getElementById('cp_address').textContent = data.address || '-';
+      document.getElementById('cp_city').textContent = data.city || '-';
+      document.getElementById('cp_country').textContent = data.country || '-';
+      document.getElementById('cp_contact').textContent = data.contact || '-';
+      document.getElementById('cp_balance').textContent = '₹' + (data.balance || 0).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+      profileBox.style.display = 'block';
+      loanForm.style.display = 'block';
+      document.getElementById('l_account').value = accNo;
+
+      // Clear stale entries from any previous lookup
+      ['l_aadhar','l_aadhar_confirm','l_pan','l_pan_confirm','l_amount','l_rate'].forEach(function(id) {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('l_years').value = 0;
+      document.getElementById('l_months').value = 0;
+      recalc();
+
+    } catch (err) {
+      alert('Could not reach the server. Please try again.');
+    } finally {
+      fetchBtn.disabled = false;
+      fetchBtn.textContent = '🔍 FETCH CUSTOMER';
+    }
+  }
+
+  function checkConfirmMatch() {
+    var aadhar = document.getElementById('l_aadhar').value.trim();
+    var aadharConfirm = document.getElementById('l_aadhar_confirm').value.trim();
+    var pan = document.getElementById('l_pan').value.trim();
+    var panConfirm = document.getElementById('l_pan_confirm').value.trim();
+    var warning = document.getElementById('matchWarning');
+    var grantBtn = document.getElementById('grantBtn');
+
+    var aadharFilled = aadhar.length > 0 && aadharConfirm.length > 0;
+    var panFilled = pan.length > 0 && panConfirm.length > 0;
+    var aadharMismatch = aadharFilled && aadhar !== aadharConfirm;
+    var panMismatch = panFilled && pan !== panConfirm;
+
+    if (aadharMismatch || panMismatch) {
+      warning.style.display = 'block';
+      grantBtn.disabled = true;
+    } else {
+      warning.style.display = 'none';
+      grantBtn.disabled = false;
+    }
+  }
+
+  ['l_aadhar','l_aadhar_confirm','l_pan','l_pan_confirm'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', checkConfirmMatch);
+  });
+
+  document.getElementById('loanForm').addEventListener('submit', function(e) {
+    var aadhar = document.getElementById('l_aadhar').value.trim();
+    var aadharConfirm = document.getElementById('l_aadhar_confirm').value.trim();
+    var pan = document.getElementById('l_pan').value.trim();
+    var panConfirm = document.getElementById('l_pan_confirm').value.trim();
+    if (aadhar !== aadharConfirm || pan !== panConfirm) {
+      e.preventDefault();
+      alert('Aadhar / PAN confirmation fields do not match the originals. Please re-check.');
+    }
+  });
+
+  function recalc() {
+    var amount = parseFloat(document.getElementById('l_amount').value) || 0;
+    var rate   = parseFloat(document.getElementById('l_rate').value) || 0;
+    var years  = parseInt(document.getElementById('l_years').value) || 0;
+    var months = parseInt(document.getElementById('l_months').value) || 0;
+    var tenureMonths = (years * 12) + months;
+
+    var interest = 0, total = 0, emi = 0;
+    if (tenureMonths > 0) {
+      var tenureYears = tenureMonths / 12;
+      interest = (amount * rate * tenureYears) / 100;
+      total = amount + interest;
+      emi = total / tenureMonths;
+    }
+
+    document.getElementById('prevTenure').textContent = tenureMonths;
+    document.getElementById('prevInterest').textContent = '₹' + interest.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('prevTotal').textContent = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('prevEmi').textContent = '₹' + emi.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  ['l_amount','l_rate','l_years','l_months'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+</script>
+
+</body>
+</html>

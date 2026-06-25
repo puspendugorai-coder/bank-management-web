@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Account — PG BANK</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#081A33; --gold:#C9A24B; --gold-light:#E4C77A;
+    --ivory:#F7F5F0; --slate:#5B6B82; --green:#1F8A55; --red:#D8534A; --bg:#F4F6FA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--bg); font-family:'Segoe UI', Tahoma, sans-serif; color:#1c2733; }
+
+  header{
+    background:linear-gradient(90deg, var(--navy-deep), #0E2F1E);
+    color:var(--ivory); padding:18px 32px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  }
+  header .brand{ display:flex; align-items:center; gap:12px; }
+  header .brand .crest{ width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center;font-size:16px; }
+  header h1{ font-size:16px; letter-spacing:2px; font-family:Georgia, serif; }
+  header .role-tag{ font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:#7FD6A8; }
+  header span.user{ font-size:13px; opacity:0.85; }
+  .logout-btn{ background:var(--red); color:white; border:none; padding:8px 18px; border-radius:7px; cursor:pointer; font-weight:bold; text-decoration:none; font-size:12.5px; }
+  .logout-btn:hover{ background:#b8413a; }
+
+  .flash-wrap{ padding:14px 32px 0; }
+  .flash{ padding:11px 16px; border-radius:9px; font-size:13.5px; margin-bottom:10px; }
+  .flash.error{ background:#fdecea; color:#c0392b; border-left:4px solid var(--red); }
+  .flash.success{ background:#eafaf1; color:#1e8449; border-left:4px solid var(--green); }
+
+  .hero{
+    margin:26px 32px; border-radius:16px; padding:30px 34px; color:white;
+    background:linear-gradient(135deg, var(--navy-deep), var(--navy) 60%, #14304f);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;
+    box-shadow:0 10px 30px rgba(11,37,69,0.25);
+  }
+  .hero .greet .name{ font-size:22px; font-weight:700; font-family:Georgia, serif; margin-bottom:4px; }
+  .hero .greet .meta{ font-size:12.5px; opacity:0.75; }
+  .hero .balance-box{ text-align:right; }
+  .hero .balance-box .lbl{ font-size:10.5px; letter-spacing:2px; text-transform:uppercase; opacity:0.65; margin-bottom:6px; }
+  .hero .balance-box .amt{ font-size:30px; font-weight:700; color:var(--gold-light); font-family:Georgia, serif; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:0 32px 26px; }
+  @media (max-width: 880px){ .grid-2{ grid-template-columns:1fr; } }
+
+  .card{
+    background:white; border-radius:14px; padding:26px 28px;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+  .section-title{ font-size:13px; color:var(--navy); letter-spacing:1.8px; text-transform:uppercase; font-weight:700; margin-bottom:16px; }
+
+  .form-group{ display:flex; flex-direction:column; margin-bottom:14px; }
+  .form-group label{ font-size:11.5px; font-weight:600; color:#46566b; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; }
+  .form-group input{ padding:10px 12px; border:1.5px solid #dde3ec; border-radius:8px; font-size:14px; outline:none; transition:border 0.25s; }
+  .form-group input:focus{ border-color:var(--navy); }
+
+  .btn{ padding:11px 22px; border:none; border-radius:8px; font-size:13.5px; font-weight:bold; cursor:pointer; letter-spacing:1px; width:100%; }
+  .btn-green{ background:var(--green); color:white; }
+  .btn-navy{ background:var(--navy); color:white; }
+
+  .statement-sheet{
+    margin-top:18px; background:white; border:1px solid #e2e6ee; border-radius:10px;
+    padding:20px; max-height:340px; overflow-y:auto;
+  }
+  .statement-sheet table{ width:100%; border-collapse:collapse; font-size:12px; }
+  .statement-sheet th{ text-align:left; padding:8px 10px; border-bottom:2px solid #eee; color:var(--slate); text-transform:uppercase; font-size:10.5px; letter-spacing:0.6px; }
+  .statement-sheet td{ padding:8px 10px; border-bottom:1px solid #f3f3f3; }
+  .txn-credit{ color:var(--green); font-weight:600; }
+  .txn-debit{ color:var(--red); font-weight:600; }
+
+  .loan-card{
+    border:1px solid #e2e6ee; border-radius:12px; padding:18px 20px; margin-bottom:14px;
+  }
+  .loan-card .row{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+  .loan-card .row .lbl{ color:var(--slate); }
+  .loan-card .row .val{ font-weight:600; }
+  .progress-bar{ background:#eef1f6; border-radius:20px; height:8px; margin:10px 0 14px; overflow:hidden; }
+  .progress-bar .fill{ background:var(--green); height:100%; }
+
+  .pay-row{ display:flex; gap:10px; align-items:end; flex-wrap:wrap; }
+  .pay-row .form-group{ flex:1; min-width:120px; margin-bottom:0; }
+  .pdf-link{ display:inline-block; margin-top:10px; font-size:12px; color:var(--navy); text-decoration:none; font-weight:600; }
+  .pdf-link:hover{ text-decoration:underline; }
+
+  .no-data{ text-align:center; padding:30px; color:#aaa; font-size:14px; }
+
+  .accounts-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:6px; }
+  .account-pill-row{
+    display:flex; justify-content:space-between; align-items:center;
+    background:#f7f9fc; border:1px solid #e7ebf2; border-radius:10px; padding:12px 16px;
+  }
+  .account-pill-row .acc-no{ font-weight:700; color:var(--navy); font-size:13px; }
+  .account-pill-row .acc-bal{ font-size:13px; color:var(--slate); }
+  .switch-btn{
+    background:var(--navy); color:white; border:none; padding:6px 14px; border-radius:6px;
+    font-size:11px; font-weight:bold; cursor:pointer; text-decoration:none;
+  }
+
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; margin:0 32px 26px; }
+  @media (max-width: 1100px){ .grid-3{ grid-template-columns:1fr 1fr; } }
+  @media (max-width: 760px){ .grid-3{ grid-template-columns:1fr; } }
+
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+  .toggle-row label{ font-size:13px; color:#1c2733; }
+  .switch{ position:relative; display:inline-block; width:44px; height:24px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider-toggle{
+    position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
+    background-color:#ccc; transition:.3s; border-radius:24px;
+  }
+  .slider-toggle:before{
+    position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px;
+    background-color:white; transition:.3s; border-radius:50%;
+  }
+  .switch input:checked + .slider-toggle{ background-color:var(--green); }
+  .switch input:checked + .slider-toggle:before{ transform:translateX(20px); }
+
+  .receiver-preview{
+    margin-top:8px; padding:10px 14px; border-radius:8px; font-size:12.5px;
+    background:#f0f6ff; color:var(--navy); display:none;
+  }
+  .receiver-preview.show{ display:block; }
+  .receiver-preview.notfound{ background:#fdecea; color:#c0392b; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">🏦</div>
+    <div><h1>PG BANK</h1><div class="role-tag">Customer Portal</div></div>
+  </div>
+  <span class="user">{{ customer.Name }}</span>
+  <a href="{{ url_for('logout') }}" class="logout-btn">LOGOUT</a>
+</header>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+  {% endwith %}
+</div>
+
+<div class="hero">
+  <div class="greet">
+    <div class="name">Welcome back, {{ customer.Name }}</div>
+    <div class="meta">Account No: {{ customer.Account_No }} &nbsp;·&nbsp; Bank ID: {{ customer.Bank_ID }}</div>
+  </div>
+  <div class="balance-box">
+    <div class="lbl">Available Balance</div>
+    <div class="amt">₹{{ "{:,.2f}".format(customer.Balance|float) if customer.Balance is not none else "0.00" }}</div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:0;">
+  <div class="card">
+    <div class="section-title">🗂 My Accounts</div>
+    <div class="accounts-list">
+      <div class="account-pill-row" style="border-color:var(--gold); background:#fff8e6;">
+        <div>
+          <div class="acc-no">{{ customer.Account_No }} <span style="color:var(--gold); font-size:10.5px;">(current)</span></div>
+          <div class="acc-bal">₹{{ "{:,.2f}".format(customer.Balance|float) if customer.Balance is not none else "0.00" }}</div>
+        </div>
+      </div>
+      {% for a in other_accounts %}
+      <div class="account-pill-row">
+        <div>
+          <div class="acc-no">{{ a.Account_No }}</div>
+          <div class="acc-bal">₹{{ "{:,.2f}".format(a.Balance|float) if a.Balance is not none else "0.00" }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% if not other_accounts %}
+      <p class="no-data" style="padding:14px 0 0;">You only have one account with us. Visit a branch to open up to {{ 3 }} accounts under your identity.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="section-title">💸 Transfer Money</div>
+    <form method="POST" action="{{ url_for('customer_transfer') }}" id="transferForm">
+      <div class="form-group">
+        <label>Receiver Account Number</label>
+        <input type="text" name="receiver_account" id="receiverAccount" placeholder="10-digit account number" maxlength="10" required />
+        {% if other_accounts %}
+        <small style="margin-top:6px; color:var(--slate); font-size:11px;">Your other accounts:
+          {% for a in other_accounts %}
+            <a href="#" onclick="document.getElementById('receiverAccount').value='{{ a.Account_No }}'; lookupReceiver(); return false;" style="color:var(--navy); font-weight:600;">{{ a.Account_No }}</a>{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </small>
+        {% endif %}
+        <div class="receiver-preview" id="receiverPreview"></div>
+      </div>
+      <div class="form-group">
+        <label>Amount (₹)</label>
+        <input type="number" name="amount" min="1" step="0.01" placeholder="Enter amount" required />
+      </div>
+      <div class="form-group">
+        <label>Your PIN</label>
+        <input type="password" name="pin" maxlength="4" placeholder="••••" required />
+      </div>
+      <button type="submit" class="btn btn-green">SEND MONEY</button>
+    </form>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="section-title">🧾 Bank Statement</div>
+    <form method="POST" action="{{ url_for('customer_statement') }}">
+      <div class="form-group">
+        <label>Account Number</label>
+        <input type="text" name="account_no" placeholder="Your account number" required />
+      </div>
+      <div class="form-group">
+        <label>Bank ID</label>
+        <input type="text" name="bank_id" placeholder="Your Bank ID" maxlength="6" required />
+      </div>
+      <div class="form-group">
+        <label>PIN</label>
+        <input type="password" name="pin" placeholder="4-digit PIN" maxlength="4" required />
+      </div>
+      <button type="submit" class="btn btn-navy">VIEW STATEMENT</button>
+    </form>
+
+    {% if statement is not none %}
+      <div class="statement-sheet">
+        {% if statement %}
+        <table>
+          <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Balance After</th></tr></thead>
+          <tbody>
+            {% for t in statement %}
+            <tr>
+              <td>{{ t.Created_At[:10] if t.Created_At else '-' }}</td>
+              <td class="{{ 'txn-credit' if t.Type in ['CREDIT','EMI_PAYMENT'] else 'txn-debit' }}">{{ t.Type }}</td>
+              <td>{{ t.Description }}</td>
+              <td>₹{{ "{:,.2f}".format(t.Amount|float) }}</td>
+              <td>₹{{ "{:,.2f}".format(t.Balance_After|float) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+          <p class="no-data">No transactions found yet.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- LOANS -->
+  <div class="card">
+    <div class="section-title">📑 My Loans &amp; EMI</div>
+
+    {% if loans %}
+      {% for l in loans %}
+      <div class="loan-card">
+        <div class="row"><span class="lbl">Loan Amount</span><span class="val">₹{{ "{:,.2f}".format(l.Loan_Amount|float) }}</span></div>
+        <div class="row"><span class="lbl">Interest Rate</span><span class="val">{{ l.Interest_Rate }}% p.a.</span></div>
+        <div class="row"><span class="lbl">Monthly EMI</span><span class="val">₹{{ "{:,.2f}".format(l.EMI_Amount|float) }}</span></div>
+        <div class="row"><span class="lbl">Months Paid</span><span class="val">{{ l.Months_Paid }} / {{ l.Tenure_Months }}</span></div>
+        <div class="progress-bar"><div class="fill" style="width:{{ (l.Months_Paid / l.Tenure_Months * 100) if l.Tenure_Months else 0 }}%;"></div></div>
+        <div class="row"><span class="lbl">Remaining Payable</span><span class="val">₹{{ "{:,.2f}".format(l.Remaining_Amount|float) }}</span></div>
+        <div class="row"><span class="lbl">Status</span><span class="val">{{ l.Status }}</span></div>
+
+        {% if l.Status == 'ACTIVE' %}
+        <form method="POST" action="{{ url_for('customer_pay_emi') }}" style="margin-top:14px;" class="emiPayForm" data-loan-id="{{ l.id }}">
+          <input type="hidden" name="loan_id" value="{{ l.id }}" />
+          <div class="pay-row">
+            <div class="form-group">
+              <label>Months to Pay</label>
+              <input type="number" class="monthsToPayInput" name="months_to_pay" min="1" max="{{ l.Tenure_Months - l.Months_Paid }}" value="1" />
+            </div>
+            <div class="form-group">
+              <label>PIN</label>
+              <input type="password" name="pin" maxlength="4" placeholder="••••" required />
+            </div>
+          </div>
+          <div class="emiTotalPreview" style="margin-top:10px; font-size:13px; color:var(--navy); background:#f0f6ff; border-radius:8px; padding:10px 14px;">
+            Total to pay: <strong class="emiTotalAmount">₹{{ "{:,.2f}".format(l.EMI_Amount|float) }}</strong>
+          </div>
+          <button type="submit" class="btn btn-green" style="margin-top:12px;">PAY EMI NOW</button>
+        </form>
+        {% endif %}
+
+        <a href="{{ url_for('loan_schedule_pdf', loan_id=l.id) }}" class="pdf-link">⬇ Download EMI Schedule (PDF)</a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="no-data">You don't have any active loans.</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<div class="grid-3">
+
+  <!-- SPEND ANALYTICS -->
+  <div class="card">
+    <div class="section-title">📊 Spend Analytics</div>
+    {% if category_totals %}
+      <canvas id="spendChart" height="220"></canvas>
+    {% else %}
+      <p class="no-data">No transaction history yet to chart.</p>
+    {% endif %}
+  </div>
+
+  <!-- CHANGE PIN -->
+  <div class="card">
+    <div class="section-title">🔑 Change PIN</div>
+    <form method="POST" action="{{ url_for('customer_change_pin') }}">
+      <div class="form-group">
+        <label>Old PIN</label>
+        <input type="password" name="old_pin" maxlength="4" placeholder="••••" required />
+      </div>
+      <div class="form-group">
+        <label>New PIN</label>
+        <input type="password" name="new_pin" maxlength="4" placeholder="••••" required />
+      </div>
+      <div class="form-group">
+        <label>Confirm New PIN</label>
+        <input type="password" name="confirm_new_pin" maxlength="4" placeholder="••••" required />
+      </div>
+      <button type="submit" class="btn btn-navy">UPDATE PIN</button>
+    </form>
+  </div>
+
+  <!-- TRANSACTION LIMITS -->
+  <div class="card">
+    <div class="section-title">⚙️ Transaction Settings</div>
+    <form method="POST" action="{{ url_for('customer_update_limits') }}">
+      <div class="form-group">
+        <label>Domestic Transaction Limit (₹)</label>
+        <input type="number" name="domestic_limit" min="1" step="100" value="{{ domestic_limit }}" required />
+      </div>
+      <div class="form-group">
+        <label>International Transaction Limit (₹)</label>
+        <input type="number" name="international_limit" min="1" step="100" value="{{ international_limit }}" required />
+      </div>
+      <div class="toggle-row">
+        <label>Enable International Transactions</label>
+        <label class="switch">
+          <input type="checkbox" name="intl_enabled" {% if intl_enabled %}checked{% endif %} />
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+      <div class="form-group" style="margin-top:8px;">
+        <label>Confirm with PIN</label>
+        <input type="password" name="pin" maxlength="4" placeholder="••••" required />
+      </div>
+      <button type="submit" class="btn btn-navy">SAVE SETTINGS</button>
+    </form>
+  </div>
+
+</div>
+
+</body>
+
+<script>
+  document.querySelectorAll('.emiPayForm').forEach(function(form) {
+    var loanId = form.getAttribute('data-loan-id');
+    var monthsInput = form.querySelector('.monthsToPayInput');
+    var totalDisplay = form.querySelector('.emiTotalAmount');
+
+    async function updatePreview() {
+      var months = parseInt(monthsInput.value) || 1;
+      try {
+        var res = await fetch('/customer/pay-emi-preview/' + loanId + '/' + months);
+        var data = await res.json();
+        if (data.error) {
+          totalDisplay.textContent = 'Unavailable';
+          return;
+        }
+        totalDisplay.textContent = '₹' + data.total_amount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})
+          + ' for ' + data.months + ' month(s)';
+        // Keep the input in sync if the server clamped it (e.g. exceeded remaining months)
+        if (data.months !== months) monthsInput.value = data.months;
+      } catch (err) {
+        totalDisplay.textContent = 'Could not calculate total';
+      }
+    }
+
+    monthsInput.addEventListener('input', updatePreview);
+    updatePreview(); // run once on load
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var totalText = totalDisplay.textContent;
+      if (confirm('Confirm EMI payment of ' + totalText + '? This will be deducted from your account balance immediately.')) {
+        form.submit();
+      }
+    });
+  });
+
+  // ── Transfer: live receiver lookup ──
+  var receiverInput = document.getElementById('receiverAccount');
+  var receiverPreview = document.getElementById('receiverPreview');
+  var lookupTimer = null;
+
+  async function lookupReceiver() {
+    var accNo = receiverInput.value.trim();
+    if (accNo.length < 5) { receiverPreview.classList.remove('show', 'notfound'); return; }
+    try {
+      var res = await fetch('/customer/transfer-lookup/' + encodeURIComponent(accNo));
+      var data = await res.json();
+      if (data.found) {
+        receiverPreview.classList.remove('notfound');
+        receiverPreview.classList.add('show');
+        receiverPreview.textContent = '✓ ' + data.name + ' (Bank ID: ' + data.bank_id + ')';
+      } else {
+        receiverPreview.classList.add('show', 'notfound');
+        receiverPreview.textContent = data.error || 'No account found with that number.';
+      }
+    } catch (err) {
+      receiverPreview.classList.remove('show');
+    }
+  }
+  if (receiverInput) {
+    receiverInput.addEventListener('input', function() {
+      clearTimeout(lookupTimer);
+      lookupTimer = setTimeout(lookupReceiver, 400);
+    });
+  }
+
+  var transferForm = document.getElementById('transferForm');
+  if (transferForm) {
+    transferForm.addEventListener('submit', function(e) {
+      var amount = transferForm.querySelector('input[name="amount"]').value;
+      var receiver = receiverInput.value;
+      if (!confirm('Send ₹' + amount + ' to account ' + receiver + '? This cannot be undone.')) {
+        e.preventDefault();
+      }
+    });
+  }
+
+  // ── Spend Analytics chart ──
+  {% if category_totals %}
+  (function() {
+    var ctx = document.getElementById('spendChart');
+    if (!ctx) return;
+    var labels = {{ category_totals.keys()|list|tojson }};
+    var values = {{ category_totals.values()|list|tojson }};
+    var colors = ['#0B2545', '#C9A24B', '#1F8A55', '#D8534A', '#5B6B82', '#17B2E2'];
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors.slice(0, labels.length),
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11 } } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ctx.label + ': ₹' + ctx.parsed.toLocaleString('en-IN', {minimumFractionDigits:2});
+              }
+            }
+          }
+        }
+      }
+    });
+  })();
+  {% endif %}
+</script>
+
+</html>

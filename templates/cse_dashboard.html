@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CSE Portal — PG BANK</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#081A33; --gold:#C9A24B; --gold-light:#E4C77A;
+    --ivory:#F7F5F0; --slate:#5B6B82; --green:#1F8A55; --red:#D8534A; --bg:#F4F6FA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--bg); font-family:'Segoe UI', Tahoma, sans-serif; color:#1c2733; }
+
+  header{
+    background:linear-gradient(90deg, var(--navy-deep), var(--navy));
+    color:var(--ivory); padding:18px 32px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  }
+  header .brand{ display:flex; align-items:center; gap:12px; }
+  header .brand .crest{
+    width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  header h1{ font-size:16px; letter-spacing:2px; font-family:Georgia, serif; }
+  header .role-tag{
+    font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-light);
+  }
+  header span.user{ font-size:13px; opacity:0.85; }
+  .logout-btn{
+    background:var(--red); color:white; border:none; padding:8px 18px;
+    border-radius:7px; cursor:pointer; font-weight:bold; text-decoration:none; font-size:12.5px;
+  }
+  .logout-btn:hover{ background:#b8413a; }
+
+  .flash-wrap{ padding:14px 32px 0; }
+  .flash{ padding:11px 16px; border-radius:9px; font-size:13.5px; margin-bottom:10px; }
+  .flash.error{ background:#fdecea; color:#c0392b; border-left:4px solid var(--red); }
+  .flash.success{ background:#eafaf1; color:#1e8449; border-left:4px solid var(--green); }
+
+  .section-title{
+    font-size:13px; color:var(--navy); letter-spacing:1.8px; text-transform:uppercase;
+    font-weight:700; margin-bottom:4px;
+  }
+  .section-sub{ font-size:11.5px; color:var(--slate); margin-bottom:18px; }
+
+  .form-card{
+    background:white; margin:22px 32px; border-radius:14px; padding:30px 32px;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+
+  .step-block{ margin-bottom:26px; }
+  .step-label{
+    display:inline-flex; align-items:center; gap:8px; font-size:11.5px; font-weight:700;
+    letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:14px;
+    border-bottom:2px solid #f1e4c4; padding-bottom:8px; width:100%;
+  }
+  .step-label .num{
+    background:var(--navy); color:var(--gold-light); width:20px;height:20px;border-radius:50%;
+    font-size:10.5px; display:flex;align-items:center;justify-content:center;
+  }
+
+  .form-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px;
+  }
+  .form-group{ display:flex; flex-direction:column; }
+  .form-group label{
+    font-size:11.5px; font-weight:600; color:#46566b; text-transform:uppercase;
+    letter-spacing:0.6px; margin-bottom:6px;
+  }
+  .form-group input, .form-group select{
+    padding:10px 12px; border:1.5px solid #dde3ec; border-radius:8px;
+    font-size:14px; outline:none; transition:border 0.25s; background:white;
+  }
+  .form-group input:focus, .form-group select:focus{ border-color:var(--navy); }
+
+  .btn-row{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+  .btn{
+    padding:11px 24px; border:none; border-radius:8px; font-size:13.5px; font-weight:bold;
+    cursor:pointer; letter-spacing:1px; transition:opacity 0.2s;
+  }
+  .btn:hover{ opacity:0.88; }
+  .btn-add{ background:var(--green); color:white; }
+  .btn-update{ background:var(--navy); color:white; }
+  .btn-clear{ background:#9aa6b5; color:white; }
+
+  .table-card{
+    background:white; margin:0 32px 32px; border-radius:14px; overflow:hidden;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+  .table-card h2{
+    font-size:13px; color:var(--navy); letter-spacing:1.8px; text-transform:uppercase;
+    padding:18px 24px; border-bottom:2px solid #f1e4c4; font-weight:700;
+  }
+  .table-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  thead tr{ background:var(--navy); color:var(--ivory); }
+  thead th{ padding:11px 14px; text-align:left; white-space:nowrap; font-size:11px; letter-spacing:0.6px; }
+  tbody tr{ border-bottom:1px solid #eef1f6; cursor:pointer; transition:background 0.15s; }
+  tbody tr:hover{ background:#f3f7fc; }
+  tbody td{ padding:10px 14px; white-space:nowrap; }
+  .btn-delete{
+    background:var(--red); color:white; border:none; padding:5px 12px;
+    border-radius:6px; cursor:pointer; font-size:11.5px; font-weight:bold; text-decoration:none;
+  }
+  .btn-delete:hover{ background:#b8413a; }
+  .no-records{ text-align:center; padding:30px; color:#aaa; font-size:15px; }
+  .acct-pill{
+    background:#eef3fb; color:var(--navy); padding:3px 8px; border-radius:6px;
+    font-weight:700; font-size:11.5px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">🏦</div>
+    <div>
+      <h1>PG BANK</h1>
+      <div class="role-tag">Customer Service Portal</div>
+    </div>
+  </div>
+  <span class="user">Logged in as <strong>{{ label }}</strong></span>
+  <a href="{{ url_for('logout') }}" class="logout-btn">LOGOUT</a>
+</header>
+
+<div class="flash-wrap" style="padding-top:14px;">
+  <a href="{{ url_for('cse_menu') }}" style="font-size:12.5px; color:#5B6B82; text-decoration:none;">← Back to CSE Menu</a>
+</div>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<!-- ONBOARDING FORM -->
+<div class="form-card">
+  <div class="section-title">📋 Advanced Client Onboarding</div>
+  <div class="section-sub">Complete every step to register a new customer and issue their account.</div>
+
+  <form method="POST" action="{{ url_for('cse_add_record') }}" id="mainForm">
+
+    <!-- STEP 1: PERSONAL DETAILS -->
+    <div class="step-block">
+      <div class="step-label"><span class="num">1</span> Personal Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" name="name" id="f_name" placeholder="Full name" required />
+        </div>
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" name="age" id="f_age" placeholder="18+" min="0" required />
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select name="gender" id="f_gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" name="address" id="f_address" placeholder="Address" />
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" name="city" id="f_city" placeholder="Type or select a city" list="city_list" autocomplete="off" />
+          <datalist id="city_list">
+            <option value="Asansol"><option value="Durgapur"><option value="Raniganj">
+            <option value="Kolkata"><option value="Mumbai"><option value="Delhi">
+            <option value="Bangalore"><option value="Hyderabad"><option value="Chennai">
+            <option value="Pune"><option value="Ahmedabad"><option value="Jaipur">
+            <option value="Lucknow"><option value="Surat">
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          <input type="text" name="country" id="f_country" placeholder="Type or select a country" list="country_list" autocomplete="off" />
+          <datalist id="country_list">
+            <option value="India"><option value="USA"><option value="UK">
+            <option value="Canada"><option value="Australia"><option value="Germany">
+            <option value="UAE"><option value="Singapore">
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>Contact (10 digits)</label>
+          <input type="text" name="contact" id="f_contact" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" required />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="text" name="email" id="f_email" placeholder="example@mail.com" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: VERIFICATION DETAILS (KYC) -->
+    <div class="step-block">
+      <div class="step-label"><span class="num">2</span> Verification Details (KYC)</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Aadhar No</label>
+          <input type="text" name="aadhar_no" id="f_aadhar" placeholder="Max 12 digits" maxlength="12" required />
+        </div>
+        <div class="form-group">
+          <label>Pan No</label>
+          <input type="text" name="pan_no" id="f_pan" placeholder="Alphanumeric" maxlength="12" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: ACCOUNT DETAILS -->
+    <div class="step-block">
+      <div class="step-label"><span class="num">3</span> Account Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Bank ID (max 6 chars)</label>
+          <input type="text" name="bank_id" id="f_bankid" placeholder="e.g. AB1234" maxlength="6" required />
+        </div>
+        <div class="form-group">
+          <label>Initial Deposit (₹1,000 – ₹10,00,000)</label>
+          <input type="number" name="amount" id="f_amount" placeholder="Min 1000, Max 1000000" min="1000" max="1000000" required />
+        </div>
+        <div class="form-group">
+          <label>Card No <span style="color:var(--green); font-size:10px; font-weight:600;">(Click to generate)</span></label>
+          <input type="text" name="card_no" id="f_card" placeholder="🖱 Click here to auto-generate" maxlength="12" readonly onclick="generateCardAndPin()"
+                 style="background:#f0f6ff; color:var(--navy); font-weight:600; letter-spacing:1px; cursor:pointer;" />
+          <small id="cardGenNote" style="color:var(--green); font-size:11px; margin-top:4px; display:none;">✔ Card &amp; PIN generated — confirm both below.</small>
+        </div>
+        <div class="form-group" id="confirmCardGroup">
+          <label>Confirm Card No</label>
+          <input type="text" name="confirm_card_no" id="f_confirm_card" placeholder="Re-enter the generated card number" maxlength="12" />
+        </div>
+        <div class="form-group">
+          <label>Pin No <span style="color:var(--green); font-size:10px; font-weight:600;">(Auto-Generated)</span></label>
+          <input type="text" name="pin_no" id="f_pin" placeholder="Generated with Card No" maxlength="4" readonly
+                 style="background:#f0f6ff; color:var(--navy); font-weight:600; letter-spacing:4px;" />
+        </div>
+        <div class="form-group" id="confirmPinGroup">
+          <label>Confirm Pin No</label>
+          <input type="text" name="confirm_pin_no" id="f_confirm_pin" placeholder="Re-enter the generated PIN" maxlength="4" />
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-add" id="addBtn">＋ REGISTER CUSTOMER</button>
+      <button type="button" class="btn btn-update" onclick="submitUpdate()">✎ UPDATE SELECTED</button>
+      <button type="button" class="btn btn-clear" onclick="clearForm()">✕ CLEAR</button>
+    </div>
+  </form>
+
+  <!-- Hidden update form -->
+  <form method="POST" action="{{ url_for('cse_update_record') }}" id="updateForm" style="display:none;">
+    <input type="hidden" name="account_no" id="u_account_no" />
+    <input type="hidden" name="name"       id="u_name" />
+    <input type="hidden" name="address"    id="u_address" />
+    <input type="hidden" name="email"      id="u_email" />
+    <input type="hidden" name="age"        id="u_age" />
+    <input type="hidden" name="city"       id="u_city" />
+    <input type="hidden" name="country"    id="u_country" />
+    <input type="hidden" name="aadhar_no"  id="u_aadhar" />
+    <input type="hidden" name="pan_no"     id="u_pan" />
+    <input type="hidden" name="contact"    id="u_contact" />
+    <input type="hidden" name="bank_id"    id="u_bankid" />
+    <input type="hidden" name="gender"     id="u_gender" />
+  </form>
+</div>
+
+<!-- TABLE -->
+<div class="table-card">
+  <h2>📊 Registered Customers</h2>
+  <div class="table-wrap">
+    {% if records %}
+    <div style="padding: 16px 24px; border-bottom: 1px solid #eee; display:flex; align-items:center; gap:12px;">
+      <input type="text" id="searchBar" onkeyup="searchTable()" placeholder="🔍  Search by any field — name, city, account no..."
+             style="width:100%; padding:10px 16px; border:2px solid #ddd; border-radius:8px; font-size:14px; outline:none; transition: border 0.3s;"
+             onfocus="this.style.borderColor='#0B2545'" onblur="this.style.borderColor='#ddd'" />
+      <span id="recordCount" style="white-space:nowrap; font-size:13px; color:#888;"></span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Account No</th><th>Card No</th><th>Name</th><th>Address</th><th>Email</th><th>Age</th>
+          <th>City</th><th>Country</th><th>Aadhar No</th><th>Pan No</th>
+          <th>Contact</th><th>Bank ID</th><th>Balance</th><th>Gender</th><th>Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in records %}
+      <tr id="row-{{ loop.index }}" onclick="fillForm({{ loop.index - 1 }})">
+        <td><span class="acct-pill">{{ r.Account_No }}</span></td>
+        <td>****{{ r.Card_No[-4:] if r.Card_No else '----' }}</td>
+        <td>{{ r.Name }}</td>
+        <td>{{ r.Address }}</td>
+        <td>{{ r.Email }}</td>
+        <td>{{ r.Age }}</td>
+        <td>{{ r.City }}</td>
+        <td>{{ r.Country }}</td>
+        <td>****{{ r.Aadhar_No[-4:] if r.Aadhar_No else '----' }}</td>
+        <td>****{{ r.Pan_No[-4:] if r.Pan_No else '----' }}</td>
+        <td>{{ r.Contact }}</td>
+        <td>{{ r.Bank_ID }}</td>
+        <td>₹{{ "%.2f"|format(r.Balance|float) if r.Balance is not none else "0.00" }}</td>
+        <td>{{ r.Gender }}</td>
+        <td>
+          <a href="{{ url_for('account_statement_pdf', account_no=r.Account_No) }}"
+             onclick="event.stopPropagation();"
+             style="background:var(--navy); color:white; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold; text-decoration:none; margin-right:6px;">PDF</a>
+          <a href="{{ url_for('cse_delete_record', account_no=r.Account_No) }}"
+             onclick="event.stopPropagation(); return confirm('Delete this customer? If they have any CLOSED loans, that loan and transaction history will be permanently erased too. This cannot be undone.')"
+             class="btn-delete">DELETE</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="no-records">No customers registered yet. Use the form above to onboard one.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  var ALL_RECORDS = {{ records | tojson | safe }};
+
+  function fillForm(index) {
+    var r = ALL_RECORDS[index];
+    if (!r) { alert("Could not load record. Please refresh the page."); return; }
+
+    var mapping = [
+      ['f_name', r.Name], ['f_address', r.Address], ['f_email', r.Email],
+      ['f_age', r.Age], ['f_city', r.City], ['f_country', r.Country],
+      ['f_aadhar', r.Aadhar_No], ['f_pan', r.Pan_No], ['f_contact', r.Contact],
+      ['f_bankid', r.Bank_ID], ['f_gender', r.Gender]
+    ];
+    mapping.forEach(function(pair) {
+      var el = document.getElementById(pair[0]);
+      if (el) el.value = (pair[1] !== null && pair[1] !== undefined) ? pair[1] : '';
+    });
+
+    document.getElementById('u_account_no').value = r.Account_No;
+
+    // Aadhar/PAN are locked KYC fields — never editable once a customer is registered
+    var aadharEl = document.getElementById('f_aadhar');
+    var panEl = document.getElementById('f_pan');
+    aadharEl.readOnly = true; panEl.readOnly = true;
+    aadharEl.style.background = '#e8e8e8'; aadharEl.style.color = '#777';
+    panEl.style.background = '#e8e8e8'; panEl.style.color = '#777';
+
+    // Card/PIN are never editable post-creation
+    var cardEl = document.getElementById('f_card');
+    var pinEl  = document.getElementById('f_pin');
+    cardEl.value = '•••• •••• ••••';
+    pinEl.value  = '••••';
+    cardEl.style.background = '#e8e8e8'; cardEl.style.color = '#999';
+    pinEl.style.background  = '#e8e8e8'; pinEl.style.color = '#999';
+
+    document.getElementById('confirmCardGroup').style.display = 'none';
+    document.getElementById('confirmPinGroup').style.display  = 'none';
+
+    document.querySelectorAll('tbody tr').forEach(function(tr) {
+      tr.style.background = ''; tr.style.fontWeight = 'normal';
+    });
+    var selectedRow = document.getElementById('row-' + (index + 1));
+    if (selectedRow) { selectedRow.style.background = '#e3edfa'; selectedRow.style.fontWeight = '600'; }
+
+    var formCard = document.querySelector('.form-card');
+    if (formCard) {
+      formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      formCard.style.transition = 'box-shadow 0.4s';
+      formCard.style.boxShadow  = '0 0 0 3px #0B2545';
+      setTimeout(function(){ formCard.style.boxShadow = '0 6px 24px rgba(11,37,69,0.07)'; }, 1400);
+    }
+  }
+
+  function searchTable() {
+    var query = document.getElementById('searchBar').value.toLowerCase().trim();
+    var rows = document.querySelectorAll('tbody tr');
+    var visible = 0;
+    rows.forEach(function(row) {
+      if (row.id === 'noResults') return;
+      var match = row.innerText.toLowerCase().includes(query);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    var total = ALL_RECORDS.length;
+    var countEl = document.getElementById('recordCount');
+    if (countEl) {
+      if (query === '') { countEl.textContent = total + ' record' + (total !== 1 ? 's' : ''); countEl.style.color = '#888'; }
+      else { countEl.textContent = visible + ' of ' + total + ' match' + (visible !== 1 ? 'es' : ''); countEl.style.color = visible === 0 ? '#D8534A' : '#1F8A55'; }
+    }
+  }
+
+  function submitUpdate() {
+    var bankId = document.getElementById('u_account_no').value;
+    if (!bankId) { alert('⚠️  Please click a record from the table below first to select it.'); return; }
+    if (confirm('Confirm update for Account: ' + bankId + '?')) { document.getElementById('updateForm').submit(); }
+  }
+
+  function generateCardAndPin() {
+    var card = ''; for (var i = 0; i < 12; i++) card += Math.floor(Math.random() * 10).toString();
+    var pin = '';  for (var j = 0; j < 4; j++)  pin  += Math.floor(Math.random() * 10).toString();
+
+    var cardEl = document.getElementById('f_card'), pinEl = document.getElementById('f_pin');
+    var ccEl = document.getElementById('f_confirm_card'), cpEl = document.getElementById('f_confirm_pin');
+    var noteEl = document.getElementById('cardGenNote');
+
+    cardEl.value = card; pinEl.value = pin;
+    if (ccEl) { ccEl.value = ''; ccEl.placeholder = 'Re-enter: ' + card; }
+    if (cpEl) { cpEl.value = ''; cpEl.placeholder = 'Re-enter: ' + pin; }
+    if (noteEl) noteEl.style.display = 'block';
+    if (ccEl) ccEl.focus();
+  }
+
+  function clearForm() {
+    ['f_name','f_address','f_email','f_age','f_aadhar','f_pan','f_contact','f_card','f_pin',
+     'f_bankid','f_amount','f_city','f_country','f_confirm_card','f_confirm_pin'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+    var cardEl = document.getElementById('f_card'), pinEl = document.getElementById('f_pin');
+    cardEl.readOnly = true; cardEl.style.background = '#f0f6ff'; cardEl.style.color = '#0B2545'; cardEl.style.cursor = 'pointer';
+    cardEl.placeholder = '🖱 Click here to auto-generate';
+    pinEl.readOnly = true; pinEl.style.background = '#f0f6ff'; pinEl.style.color = '#0B2545';
+    pinEl.placeholder = 'Generated with Card No';
+
+    var aadharEl = document.getElementById('f_aadhar'), panEl = document.getElementById('f_pan');
+    aadharEl.readOnly = false; aadharEl.style.background = ''; aadharEl.style.color = '';
+    panEl.readOnly = false; panEl.style.background = ''; panEl.style.color = '';
+
+    var ccEl = document.getElementById('f_confirm_card'), cpEl = document.getElementById('f_confirm_pin');
+    if (ccEl) ccEl.placeholder = 'Re-enter the generated card number';
+    if (cpEl) cpEl.placeholder = 'Re-enter the generated PIN';
+    document.getElementById('cardGenNote').style.display = 'none';
+    document.getElementById('confirmCardGroup').style.display = '';
+    document.getElementById('confirmPinGroup').style.display  = '';
+    var g = document.getElementById('f_gender'); if (g) g.value = 'Male';
+    document.getElementById('u_account_no').value = '';
+
+    document.querySelectorAll('tbody tr').forEach(function(tr) { tr.style.background = ''; tr.style.fontWeight = 'normal'; });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var countEl = document.getElementById('recordCount');
+    if (countEl) { var total = ALL_RECORDS.length; countEl.textContent = total + ' record' + (total !== 1 ? 's' : ''); }
+
+    var contactField = document.getElementById('f_contact');
+    if (contactField) {
+      contactField.addEventListener('keypress', function(e) { if (!/[0-9]/.test(e.key)) e.preventDefault(); });
+      contactField.addEventListener('paste', function(e) {
+        e.preventDefault();
+        var pasted = (e.clipboardData || window.clipboardData).getData('text');
+        this.value = pasted.replace(/\D/g, '').slice(0, 10);
+      });
+      contactField.addEventListener('input', function() { if (this.value.length > 10) this.value = this.value.slice(0, 10); });
+    }
+  });
+</script>
+
+</body>
+</html>

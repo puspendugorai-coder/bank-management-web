@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fetch Customer —PG BANK</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#081A33; --gold:#C9A24B; --gold-light:#E4C77A;
+    --ivory:#F7F5F0; --slate:#5B6B82; --green:#1F8A55; --red:#D8534A; --bg:#F4F6FA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--bg); font-family:'Segoe UI', Tahoma, sans-serif; color:#1c2733; }
+
+  header{
+    background:linear-gradient(90deg, var(--navy-deep), var(--navy));
+    color:var(--ivory); padding:18px 32px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  }
+  header .brand{ display:flex; align-items:center; gap:12px; }
+  header .brand .crest{ width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center;font-size:16px; }
+  header h1{ font-size:16px; letter-spacing:2px; font-family:Georgia, serif; }
+  header .role-tag{ font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-light); }
+  header span.user{ font-size:13px; opacity:0.85; }
+  .logout-btn{ background:var(--red); color:white; border:none; padding:8px 18px; border-radius:7px; cursor:pointer; font-weight:bold; text-decoration:none; font-size:12.5px; }
+  .logout-btn:hover{ background:#b8413a; }
+
+  .back-bar{ padding:14px 32px 0; }
+  .back-link{ font-size:12.5px; color:var(--slate); text-decoration:none; }
+  .back-link:hover{ color:var(--navy); }
+
+  .flash-wrap{ padding:14px 32px 0; }
+  .flash{ padding:11px 16px; border-radius:9px; font-size:13.5px; margin-bottom:10px; }
+  .flash.error{ background:#fdecea; color:#c0392b; border-left:4px solid var(--red); }
+  .flash.success{ background:#eafaf1; color:#1e8449; border-left:4px solid var(--green); }
+
+  .form-card{
+    background:white; margin:22px 32px; border-radius:14px; padding:28px 30px;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+  .section-title{ font-size:13px; color:var(--navy); letter-spacing:1.8px; text-transform:uppercase; font-weight:700; margin-bottom:16px; }
+
+  .lookup-row{ display:flex; gap:12px; }
+  .lookup-row input{
+    flex:1; padding:12px 16px; border:1.5px solid #dde3ec; border-radius:8px; font-size:14px; outline:none;
+  }
+  .lookup-row input:focus{ border-color:var(--navy); }
+  .btn{ padding:12px 26px; border:none; border-radius:8px; font-size:13.5px; font-weight:bold; cursor:pointer; letter-spacing:1px; }
+  .btn-navy{ background:var(--navy); color:white; }
+  .btn-navy:hover{ opacity:0.88; }
+
+  .profile-card{
+    background:white; margin:0 32px 22px; border-radius:14px; padding:28px 30px;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+  .profile-header{ display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:22px; }
+  .profile-name{ font-size:20px; font-weight:700; color:var(--navy); font-family:Georgia, serif; }
+  .profile-meta{ font-size:12.5px; color:var(--slate); margin-top:4px; }
+  .balance-pill{
+    background:linear-gradient(135deg, var(--navy-deep), var(--navy)); color:white;
+    padding:14px 22px; border-radius:10px; text-align:right;
+  }
+  .balance-pill .lbl{ font-size:10px; letter-spacing:1.5px; text-transform:uppercase; opacity:0.7; }
+  .balance-pill .amt{ font-size:22px; font-weight:700; color:var(--gold-light); font-family:Georgia, serif; }
+
+  .detail-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:16px; margin-bottom:22px; }
+  .detail-item .lbl{ font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--slate); margin-bottom:4px; }
+  .detail-item .val{ font-size:14px; font-weight:600; color:#1c2733; }
+
+  .download-btn{
+    display:inline-block; background:var(--green); color:white; padding:11px 24px;
+    border-radius:8px; font-size:13px; font-weight:bold; text-decoration:none; letter-spacing:0.5px;
+  }
+  .download-btn:hover{ background:#176f44; }
+
+  .sub-section{ margin-top:24px; padding-top:20px; border-top:1px solid #eef1f6; }
+  .sub-section h3{ font-size:12px; letter-spacing:1.2px; text-transform:uppercase; color:var(--navy); margin-bottom:12px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  thead tr{ background:var(--navy); color:var(--ivory); }
+  thead th{ padding:9px 12px; text-align:left; font-size:11px; letter-spacing:0.5px; }
+  tbody tr{ border-bottom:1px solid #eef1f6; }
+  tbody td{ padding:9px 12px; }
+  .acct-pill{ background:#eef3fb; color:var(--navy); padding:3px 8px; border-radius:6px; font-weight:700; font-size:11.5px; }
+  .empty-note{ font-size:12.5px; color:#aaa; padding:8px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">🏦</div>
+    <div><h1>PG BANK</h1><div class="role-tag">Customer Service Portal</div></div>
+  </div>
+  <span class="user">Logged in as <strong>{{ label }}</strong></span>
+  <a href="{{ url_for('logout') }}" class="logout-btn">LOGOUT</a>
+</header>
+
+<div class="back-bar">
+  <a href="{{ url_for('cse_menu') }}" class="back-link">← Back to CSE Menu</a>
+</div>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+  {% endwith %}
+</div>
+
+<div class="form-card">
+  <div class="section-title">🔍 Fetch Customer Details</div>
+  <form method="POST" action="{{ url_for('cse_fetch_customer') }}" class="lookup-row">
+    <input type="text" name="account_no" placeholder="Enter 10-digit account number" maxlength="10" required autofocus />
+    <button type="submit" class="btn btn-navy">FETCH</button>
+  </form>
+</div>
+
+{% if customer %}
+<div class="profile-card">
+  <div class="profile-header">
+    <div>
+      <div class="profile-name">{{ customer.Name }}</div>
+      <div class="profile-meta">Account No: {{ customer.Account_No }} &nbsp;·&nbsp; Bank ID: {{ customer.Bank_ID }}</div>
+    </div>
+    <div class="balance-pill">
+      <div class="lbl">Current Balance</div>
+      <div class="amt">₹{{ "{:,.2f}".format(customer.Balance|float) if customer.Balance is not none else "0.00" }}</div>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-item"><div class="lbl">Email</div><div class="val">{{ customer.Email }}</div></div>
+    <div class="detail-item"><div class="lbl">Contact</div><div class="val">{{ customer.Contact }}</div></div>
+    <div class="detail-item"><div class="lbl">Address</div><div class="val">{{ customer.Address }}</div></div>
+    <div class="detail-item"><div class="lbl">City / Country</div><div class="val">{{ customer.City }}, {{ customer.Country }}</div></div>
+    <div class="detail-item"><div class="lbl">Age</div><div class="val">{{ customer.Age }}</div></div>
+    <div class="detail-item"><div class="lbl">Gender</div><div class="val">{{ customer.Gender }}</div></div>
+    <div class="detail-item"><div class="lbl">Aadhar No</div><div class="val">****{{ customer.Aadhar_No[-4:] if customer.Aadhar_No else '----' }}</div></div>
+    <div class="detail-item"><div class="lbl">Pan No</div><div class="val">****{{ customer.Pan_No[-4:] if customer.Pan_No else '----' }}</div></div>
+  </div>
+
+  <a href="{{ url_for('account_statement_pdf', account_no=customer.Account_No) }}" class="download-btn">⬇ Download Bank Statement (PDF)</a>
+
+  <div class="sub-section">
+    <h3>Other accounts under this identity</h3>
+    {% if other_accounts %}
+    <table>
+      <thead><tr><th>Account No</th><th>Bank ID</th><th>Balance</th></tr></thead>
+      <tbody>
+        {% for a in other_accounts %}
+        <tr>
+          <td><span class="acct-pill">{{ a.Account_No }}</span></td>
+          <td>{{ a.Bank_ID }}</td>
+          <td>₹{{ "{:,.2f}".format(a.Balance|float) if a.Balance is not none else "0.00" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="empty-note">No other accounts found under this identity.</p>
+    {% endif %}
+  </div>
+
+  <div class="sub-section">
+    <h3>Loan accounts</h3>
+    {% if loans %}
+    <table>
+      <thead><tr><th>Loan Amount</th><th>Rate</th><th>Tenure</th><th>EMI</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for l in loans %}
+        <tr>
+          <td>₹{{ "{:,.2f}".format(l.Loan_Amount|float) }}</td>
+          <td>{{ l.Interest_Rate }}%</td>
+          <td>{{ l.Tenure_Months }} mo</td>
+          <td>₹{{ "{:,.2f}".format(l.EMI_Amount|float) }}</td>
+          <td>{{ l.Status }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="empty-note">No loan accounts on record.</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+</body>
+</html>

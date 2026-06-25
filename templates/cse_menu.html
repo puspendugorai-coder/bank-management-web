@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CSE Portal — PG BANK</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#081A33; --gold:#C9A24B; --gold-light:#E4C77A;
+    --ivory:#F7F5F0; --slate:#5B6B82; --green:#1F8A55; --red:#D8534A; --bg:#F4F6FA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--bg); font-family:'Segoe UI', Tahoma, sans-serif; color:#1c2733; }
+
+  header{
+    background:linear-gradient(90deg, var(--navy-deep), var(--navy));
+    color:var(--ivory); padding:18px 32px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  }
+  header .brand{ display:flex; align-items:center; gap:12px; }
+  header .brand .crest{
+    width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  header h1{ font-size:16px; letter-spacing:2px; font-family:Georgia, serif; }
+  header .role-tag{ font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-light); }
+  header span.user{ font-size:13px; opacity:0.85; }
+  .logout-btn{
+    background:var(--red); color:white; border:none; padding:8px 18px;
+    border-radius:7px; cursor:pointer; font-weight:bold; text-decoration:none; font-size:12.5px;
+  }
+  .logout-btn:hover{ background:#b8413a; }
+
+  .flash-wrap{ padding:14px 32px 0; }
+  .flash{ padding:11px 16px; border-radius:9px; font-size:13.5px; margin-bottom:10px; }
+  .flash.error{ background:#fdecea; color:#c0392b; border-left:4px solid var(--red); }
+  .flash.success{ background:#eafaf1; color:#1e8449; border-left:4px solid var(--green); }
+
+  .menu-wrap{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:80px 24px;
+  }
+  .menu-title{
+    font-family:Georgia, serif; font-size:24px; color:var(--navy); margin-bottom:8px;
+  }
+  .menu-sub{ font-size:13px; color:var(--slate); margin-bottom:48px; }
+
+  .menu-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:28px;
+    width:100%; max-width:700px;
+  }
+  @media (max-width: 680px){
+    .menu-grid{ grid-template-columns:1fr; }
+  }
+  .menu-card{
+    background:white; border-radius:16px; padding:36px 30px; text-align:center;
+    box-shadow:0 8px 28px rgba(11,37,69,0.08); border:1px solid #e7ebf2;
+    text-decoration:none; color:#1c2733; transition:transform 0.2s, box-shadow 0.2s;
+  }
+  .menu-card:hover{ transform:translateY(-4px); box-shadow:0 14px 36px rgba(11,37,69,0.14); }
+  .menu-icon{ font-size:38px; margin-bottom:18px; }
+  .menu-card h2{
+    font-family:Georgia, serif; font-size:18px; color:var(--navy); margin-bottom:10px;
+  }
+  .menu-card p{ font-size:13px; color:var(--slate); line-height:1.6; }
+  .menu-card .go{
+    margin-top:18px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--gold); font-weight:700;
+  }
+  .menu-card.fetch .go{ color:var(--green); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">🏦</div>
+    <div>
+      <h1>PG BANK</h1>
+      <div class="role-tag">Customer Service Portal</div>
+    </div>
+  </div>
+  <span class="user">Logged in as <strong>{{ label }}</strong></span>
+  <a href="{{ url_for('logout') }}" class="logout-btn">LOGOUT</a>
+</header>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+  {% endwith %}
+</div>
+
+<div class="menu-wrap">
+  <div class="menu-title">What would you like to do?</div>
+  <div class="menu-sub">Choose an action below to continue.</div>
+
+  <div class="menu-grid">
+    <a href="{{ url_for('cse_dashboard') }}" class="menu-card register">
+      <div class="menu-icon">📋</div>
+      <h2>Register New Customer</h2>
+      <p>Onboard a new customer with personal, KYC, and account details, and issue their account, card &amp; PIN.</p>
+      <div class="go">Open registration form →</div>
+    </a>
+
+    <a href="{{ url_for('cse_fetch_customer') }}" class="menu-card fetch">
+      <div class="menu-icon">🔍</div>
+      <h2>Fetch Customer Details</h2>
+      <p>Look up an existing customer by account number, view their profile, and download their bank statement.</p>
+      <div class="go">Open lookup →</div>
+    </a>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PG BANK — Select Your Portal</title>
+<style>
+  :root{
+    --navy:#0B2545;
+    --navy-deep:#081A33;
+    --gold:#C9A24B;
+    --gold-light:#E4C77A;
+    --ivory:#F7F5F0;
+    --slate:#5B6B82;
+    --green:#1F8A55;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(201,162,75,0.10), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(201,162,75,0.08), transparent 45%),
+      linear-gradient(160deg, var(--navy-deep), var(--navy) 60%);
+    font-family:'Segoe UI', Tahoma, sans-serif;
+    color:var(--ivory);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:56px 24px 40px;
+  }
+
+  .crest{
+    width:62px;height:62px;border-radius:50%;
+    border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;margin-bottom:18px;
+    background:rgba(201,162,75,0.08);
+  }
+
+  .brand-name{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-size:34px;letter-spacing:3px;
+    color:var(--ivory);
+  }
+  .brand-name em{ color:var(--gold); font-style:normal; }
+
+  .tagline{
+    margin-top:8px;
+    font-size:13px;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--slate);
+  }
+
+  .divider{
+    width:60px;height:2px;background:var(--gold);
+    margin:26px 0 36px;
+    opacity:0.7;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 260px));
+    gap:22px;
+    max-width:1180px;
+    width:100%;
+  }
+
+  .portal-card{
+    position:relative;
+    background:linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    border:1px solid rgba(201,162,75,0.25);
+    border-radius:14px;
+    padding:30px 24px 26px;
+    text-decoration:none;
+    color:var(--ivory);
+    transition:transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    overflow:hidden;
+  }
+  .portal-card::before{
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(201,162,75,0.12), transparent 55%);
+    opacity:0; transition:opacity 0.25s ease;
+  }
+  .portal-card:hover{
+    transform:translateY(-5px);
+    border-color:var(--gold);
+    background:linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  }
+  .portal-card:hover::before{ opacity:1; }
+
+  .portal-icon{
+    font-size:30px; margin-bottom:18px;
+    display:inline-block;
+  }
+  .portal-role{
+    font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--gold-light); margin-bottom:6px; font-weight:600;
+  }
+  .portal-title{
+    font-size:19px; font-weight:600; margin-bottom:10px;
+    font-family:Georgia, serif;
+  }
+  .portal-desc{
+    font-size:12.5px; line-height:1.55; color:var(--slate);
+  }
+  .portal-access{
+    margin-top:18px;
+    font-size:10.5px;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .portal-access::after{ content:'→'; transition:transform 0.2s ease; }
+  .portal-card:hover .portal-access::after{ transform:translateX(4px); }
+
+  .customer-card{
+    border-color:rgba(31,138,85,0.4);
+  }
+  .customer-card:hover{ border-color:var(--green); }
+  .customer-card .portal-role{ color:#7FD6A8; }
+  .customer-card .portal-access{ color:var(--green); }
+
+  footer{
+    margin-top:48px;
+    font-size:11px;
+    color:var(--slate);
+    letter-spacing:1px;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+  <div class="crest">🏦</div>
+  <div class="brand-name">VAULT &amp; <em>CREST</em></div>
+  <div class="tagline">Private &amp; Retail Banking Portal</div>
+  <div class="divider"></div>
+
+  <div class="grid">
+
+    <a class="portal-card" href="{{ url_for('staff_login', portal='manager') }}">
+      <span class="portal-icon">🗂️</span>
+      <div class="portal-role">Staff Access</div>
+      <div class="portal-title">Manager</div>
+      <div class="portal-desc">Branch-wide overview — total customers, total cash holdings, and active loan exposure.</div>
+      <div class="portal-access">Enter with access code</div>
+    </a>
+
+    <a class="portal-card" href="{{ url_for('staff_login', portal='cashier') }}">
+      <span class="portal-icon">💳</span>
+      <div class="portal-role">Staff Access</div>
+      <div class="portal-title">Cashier</div>
+      <div class="portal-desc">Look up an account, check balance, and process deposits or withdrawals.</div>
+      <div class="portal-access">Enter with access code</div>
+    </a>
+
+    <a class="portal-card" href="{{ url_for('staff_login', portal='cse') }}">
+      <span class="portal-icon">🧾</span>
+      <div class="portal-role">Staff Access</div>
+      <div class="portal-title">Customer Service</div>
+      <div class="portal-desc">Onboard new customers, register account &amp; KYC details, manage existing records.</div>
+      <div class="portal-access">Enter with access code</div>
+    </a>
+
+    <a class="portal-card" href="{{ url_for('staff_login', portal='loan') }}">
+      <span class="portal-icon">📑</span>
+      <div class="portal-role">Staff Access</div>
+      <div class="portal-title">Loan Manager</div>
+      <div class="portal-desc">Grant loans to eligible customers, auto-calculate EMI, and track repayments.</div>
+      <div class="portal-access">Enter with access code</div>
+    </a>
+
+    <a class="portal-card customer-card" href="{{ url_for('customer_login') }}">
+      <span class="portal-icon">👤</span>
+      <div class="portal-role">Customer Access</div>
+      <div class="portal-title">My Account</div>
+      <div class="portal-desc">View your balance, statements, and loan EMIs. Login with your Email &amp; Bank ID.</div>
+      <div class="portal-access">Customer login</div>
+    </a>
+
+  </div>
+
+  <footer>Vault &amp; Crest Bank &nbsp;·&nbsp; Staff portals require an authorised access code</footer>
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cashier Portal — PG BANK</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#081A33; --gold:#C9A24B; --gold-light:#E4C77A;
+    --ivory:#F7F5F0; --slate:#5B6B82; --green:#1F8A55; --red:#D8534A; --bg:#F4F6FA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:var(--bg); font-family:'Segoe UI', Tahoma, sans-serif; color:#1c2733; }
+
+  header{
+    background:linear-gradient(90deg, var(--navy-deep), var(--navy));
+    color:var(--ivory); padding:18px 32px;
+    display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 4px 16px rgba(0,0,0,0.18);
+  }
+  header .brand{ display:flex; align-items:center; gap:12px; }
+  header .brand .crest{ width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold); display:flex;align-items:center;justify-content:center;font-size:16px; }
+  header h1{ font-size:16px; letter-spacing:2px; font-family:Georgia, serif; }
+  header .role-tag{ font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold-light); }
+  header span.user{ font-size:13px; opacity:0.85; }
+  .logout-btn{ background:var(--red); color:white; border:none; padding:8px 18px; border-radius:7px; cursor:pointer; font-weight:bold; text-decoration:none; font-size:12.5px; }
+  .logout-btn:hover{ background:#b8413a; }
+
+  .flash-wrap{ padding:14px 32px 0; }
+  .flash{ padding:11px 16px; border-radius:9px; font-size:13.5px; margin-bottom:10px; }
+  .flash.error{ background:#fdecea; color:#c0392b; border-left:4px solid var(--red); }
+  .flash.success{ background:#eafaf1; color:#1e8449; border-left:4px solid var(--green); }
+
+  .wrap{ display:flex; gap:24px; margin:26px 32px; flex-wrap:wrap; align-items:flex-start; }
+
+  .card{
+    background:white; border-radius:14px; padding:28px 30px;
+    box-shadow:0 6px 24px rgba(11,37,69,0.07); border:1px solid #e7ebf2;
+  }
+  .lookup-card{ width:340px; flex-shrink:0; }
+  .result-card{ flex:1; min-width:340px; }
+  .drawer-card{ width:340px; flex-shrink:0; }
+
+  .section-title{ font-size:13px; color:var(--navy); letter-spacing:1.8px; text-transform:uppercase; font-weight:700; margin-bottom:18px; }
+
+  .form-group{ display:flex; flex-direction:column; margin-bottom:16px; }
+  .form-group label{ font-size:11.5px; font-weight:600; color:#46566b; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; }
+  .form-group input, .form-group select{
+    padding:11px 14px; border:1.5px solid #dde3ec; border-radius:8px; font-size:14px; outline:none; transition:border 0.25s;
+  }
+  .form-group input:focus, .form-group select:focus{ border-color:var(--navy); }
+
+  .btn{ padding:11px 22px; border:none; border-radius:8px; font-size:13.5px; font-weight:bold; cursor:pointer; letter-spacing:1px; transition:opacity 0.2s; width:100%; }
+  .btn:hover{ opacity:0.88; }
+  .btn-navy{ background:var(--navy); color:white; }
+  .btn-green{ background:var(--green); color:white; margin-bottom:10px; }
+  .btn-red{ background:var(--red); color:white; }
+  .btn-gold{ background:var(--gold); color:var(--navy-deep); }
+
+  .customer-profile{ text-align:center; padding:10px 0 24px; }
+  .customer-profile .avatar{
+    width:64px;height:64px;border-radius:50%;background:#eef3fb;color:var(--navy);
+    display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;
+  }
+  .customer-profile .cname{ font-size:18px; font-weight:700; color:var(--navy); margin-bottom:4px; }
+  .customer-profile .cmeta{ font-size:12.5px; color:var(--slate); }
+
+  .balance-display{
+    text-align:center; background:linear-gradient(135deg, var(--navy-deep), var(--navy));
+    color:white; border-radius:12px; padding:26px; margin-bottom:24px;
+  }
+  .balance-display .label{ font-size:11px; letter-spacing:2px; text-transform:uppercase; opacity:0.7; margin-bottom:8px; }
+  .balance-display .amount{ font-size:32px; font-weight:700; font-family:Georgia, serif; color:var(--gold-light); }
+
+  .txn-form{ display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:end; }
+  .empty-state{ text-align:center; padding:60px 20px; color:#aaa; }
+  .empty-state .icn{ font-size:40px; margin-bottom:14px; }
+
+  .high-value-note{
+    margin-top:10px; padding:10px 14px; background:#fff8e6; border-left:3px solid var(--gold);
+    border-radius:8px; font-size:12px; color:#7a5c00; display:none;
+  }
+
+  .denom-section{ margin-top:18px; border-top:1px solid #eef1f6; padding-top:16px; }
+  .denom-section h4{ font-size:11.5px; letter-spacing:1px; text-transform:uppercase; color:var(--navy); margin-bottom:12px; }
+  .denom-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .denom-input-group{ display:flex; flex-direction:column; align-items:center; background:#f7f9fc; border-radius:8px; padding:8px; }
+  .denom-input-group label{ font-size:11px; font-weight:700; color:var(--navy); margin-bottom:4px; }
+  .denom-input-group input{ width:100%; text-align:center; padding:7px; border:1.5px solid #dde3ec; border-radius:6px; font-size:13px; }
+  .denom-total{ margin-top:10px; font-size:12.5px; text-align:right; color:var(--slate); }
+  .denom-total strong{ color:var(--navy); }
+
+  .drawer-table{ width:100%; border-collapse:collapse; font-size:13px; margin-bottom:18px; }
+  .drawer-table th{ text-align:left; padding:8px 6px; color:var(--slate); font-size:10.5px; letter-spacing:0.6px; text-transform:uppercase; border-bottom:2px solid #eee; }
+  .drawer-table td{ padding:8px 6px; border-bottom:1px solid #f3f3f3; }
+  .drawer-table .note-tag{ background:#eef3fb; color:var(--navy); padding:2px 8px; border-radius:6px; font-weight:700; font-size:11.5px; }
+  .restock-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:14px; }
+  .restock-grid input{ width:100%; padding:7px; border:1.5px solid #dde3ec; border-radius:6px; font-size:12px; text-align:center; }
+  .restock-grid label{ font-size:10.5px; font-weight:700; color:var(--navy); display:block; text-align:center; margin-bottom:4px; }
+
+  /* E-Slip modal */
+  .slip-overlay{
+    display:none; position:fixed; inset:0; background:rgba(8,26,51,0.55); z-index:999;
+    align-items:center; justify-content:center;
+  }
+  .slip-overlay.active{ display:flex; }
+  .slip-paper{
+    width:300px; background:white; padding:22px 20px; font-family:'Courier New', monospace;
+    color:#111; box-shadow:0 20px 50px rgba(0,0,0,0.3); border-radius:4px;
+  }
+  .slip-paper h2{ text-align:center; font-size:15px; margin-bottom:4px; letter-spacing:1px; }
+  .slip-paper .sub{ text-align:center; font-size:10px; color:#555; margin-bottom:14px; }
+  .slip-divider{ border-top:1px dashed #888; margin:10px 0; }
+  .slip-row{ display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; }
+  .slip-row.total{ font-weight:bold; font-size:14px; margin-top:8px; }
+  .slip-footer{ text-align:center; font-size:10px; color:#555; margin-top:14px; }
+  .slip-actions{ display:flex; gap:8px; margin-top:18px; }
+  .slip-actions button{ flex:1; padding:10px; border:none; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer; }
+  .slip-print-btn{ background:var(--navy); color:white; }
+  .slip-close-btn{ background:#ddd; color:#333; }
+
+  @media print {
+    body * { visibility: hidden; }
+    .slip-paper, .slip-paper * { visibility: visible; }
+    .slip-paper{ position:absolute; top:0; left:0; box-shadow:none; }
+    .slip-actions{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">🏦</div>
+    <div><h1>PG BANK</h1><div class="role-tag">Cashier Portal</div></div>
+  </div>
+  <span class="user">{{ label }} — <strong>{{ session_cashier_id if session_cashier_id else '' }}</strong></span>
+  <a href="{{ url_for('logout') }}" class="logout-btn">LOGOUT</a>
+</header>
+
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+  {% endwith %}
+</div>
+
+<div class="wrap">
+  <div class="card lookup-card">
+    <div class="section-title">🔎 Find Customer</div>
+    <form method="POST" action="{{ url_for('cashier_lookup') }}">
+      <div class="form-group">
+        <label>Account Number</label>
+        <input type="text" name="account_no" placeholder="Enter 10-digit account no." maxlength="10" required autofocus />
+      </div>
+      <button type="submit" class="btn btn-navy">LOOK UP ACCOUNT</button>
+    </form>
+  </div>
+
+  <div class="card result-card">
+    <div class="section-title">💳 Account Summary</div>
+
+    {% if customer %}
+      <div class="customer-profile">
+        <div class="avatar">👤</div>
+        <div class="cname">{{ customer.Name }}</div>
+        <div class="cmeta">Account: {{ customer.Account_No }} &nbsp;·&nbsp; Bank ID: {{ customer.Bank_ID }}</div>
+      </div>
+
+      <div class="balance-display">
+        <div class="label">Current Balance</div>
+        <div class="amount">₹{{ "{:,.2f}".format(customer.Balance|float) if customer.Balance is not none else "0.00" }}</div>
+      </div>
+
+      <form method="POST" action="{{ url_for('cashier_transact') }}" id="txnForm" data-customer-name="{{ customer.Name }}" data-account-no="{{ customer.Account_No }}">
+        <input type="hidden" name="account_no" value="{{ customer.Account_No }}" />
+        <div class="txn-form">
+          <div class="form-group">
+            <label>Transaction Type</label>
+            <select name="txn_type" id="txnType">
+              <option value="deposit">Deposit (Credit)</option>
+              <option value="withdraw">Withdraw (Debit)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" name="amount" id="txnAmount" min="1" step="0.01" placeholder="Enter amount" required />
+          </div>
+        </div>
+
+        <div class="high-value-note" id="highValueNote">
+          ⚠ This amount is ₹{{ "%.0f"|format(high_value_threshold) }} or more — it will require Manager
+          approval before completing and will show as "Pending Manager Approval."
+        </div>
+
+        <div class="denom-section">
+          <h4>💵 Denomination Breakdown (optional, must total the amount above)</h4>
+          <div class="denom-grid">
+            {% for d in denominations %}
+            <div class="denom-input-group">
+              <label>₹{{ d }}</label>
+              <input type="number" name="denom_{{ d }}" class="denomCount" data-value="{{ d }}" min="0" value="0" />
+            </div>
+            {% endfor %}
+          </div>
+          <div class="denom-total">Breakdown total: <strong id="denomTotalDisplay">₹0.00</strong></div>
+        </div>
+
+        <button type="submit" class="btn btn-green" style="margin-top:18px;">PROCESS TRANSACTION</button>
+      </form>
+    {% else %}
+      <div class="empty-state">
+        <div class="icn">🔍</div>
+        <p>Look up an account number to view balance and process transactions.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card drawer-card">
+    <div class="section-title">🗄 My Cash Drawer</div>
+    <table class="drawer-table">
+      <thead><tr><th>Note</th><th>Count</th><th>Value</th></tr></thead>
+      <tbody>
+        {% set ns = namespace(total_notes=0, total_value=0) %}
+        {% for d in denominations %}
+        {% set count = drawer.get('Note_' ~ d, 0) if drawer else 0 %}
+        {% set ns.total_notes = ns.total_notes + (count|int) %}
+        {% set ns.total_value = ns.total_value + ((count|int) * d) %}
+        <tr>
+          <td><span class="note-tag">₹{{ d }}</span></td>
+          <td>{{ count }}</td>
+          <td>₹{{ "{:,.0f}".format((count|int) * d) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr style="border-top:2px solid var(--navy);">
+          <td style="font-weight:700; color:var(--navy); padding-top:10px;">TOTAL</td>
+          <td style="font-weight:700; color:var(--navy); padding-top:10px;">{{ ns.total_notes }} notes</td>
+          <td style="font-weight:700; color:var(--navy); padding-top:10px;">₹{{ "{:,.0f}".format(ns.total_value) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <form method="POST" action="{{ url_for('cashier_drawer_restock') }}">
+      <h4 style="font-size:11.5px; letter-spacing:1px; text-transform:uppercase; color:var(--navy); margin-bottom:10px;">Restock Drawer</h4>
+      <div class="restock-grid">
+        {% for d in denominations %}
+        <div>
+          <label>₹{{ d }}</label>
+          <input type="number" name="restock_{{ d }}" placeholder="0" />
+        </div>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-gold">+ ADD TO DRAWER</button>
+    </form>
+  </div>
+</div>
+
+<!-- E-SLIP MODAL -->
+<div class="slip-overlay" id="slipOverlay">
+  <div class="slip-paper" id="slipPaper">
+    <h2>PG BANK</h2>
+    <div class="sub">Cash Transaction Receipt</div>
+    <div class="slip-divider"></div>
+    <div class="slip-row"><span>Date/Time</span><span id="slipDateTime">-</span></div>
+    <div class="slip-row"><span>Account No</span><span id="slipAccount">-</span></div>
+    <div class="slip-row"><span>Customer</span><span id="slipName">-</span></div>
+    <div class="slip-row"><span>Type</span><span id="slipType">-</span></div>
+    <div class="slip-divider"></div>
+    <div class="slip-row total"><span id="slipAmountLabel">Amount</span><span id="slipAmount">-</span></div>
+    <div class="slip-row"><span>New Balance</span><span id="slipBalance">-</span></div>
+    <div class="slip-divider"></div>
+    <div class="slip-footer">Thank you for banking with us.<br/>This is a system-generated receipt.</div>
+    <div class="slip-actions">
+      <button class="slip-print-btn" onclick="window.print()">🖨 PRINT</button>
+      <button class="slip-close-btn" onclick="closeSlip()">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function recalcDenomTotal() {
+    var total = 0;
+    document.querySelectorAll('.denomCount').forEach(function(input) {
+      var val = parseInt(input.value) || 0;
+      var denom = parseInt(input.getAttribute('data-value'));
+      total += val * denom;
+    });
+    var el = document.getElementById('denomTotalDisplay');
+    if (el) el.textContent = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  document.querySelectorAll('.denomCount').forEach(function(input) {
+    input.addEventListener('input', recalcDenomTotal);
+  });
+
+  var amountField = document.getElementById('txnAmount');
+  var highValueNote = document.getElementById('highValueNote');
+  var HIGH_VALUE_THRESHOLD = {{ high_value_threshold|float }};
+  if (amountField) {
+    amountField.addEventListener('input', function() {
+      var amt = parseFloat(this.value) || 0;
+      highValueNote.style.display = (amt >= HIGH_VALUE_THRESHOLD) ? 'block' : 'none';
+    });
+  }
+
+  function closeSlip() {
+    document.getElementById('slipOverlay').classList.remove('active');
+  }
+
+  // Show the e-slip automatically after a successful, COMPLETED (non-pending) transaction.
+  // Amount/type/balance come directly from the server (Jinja), not parsed from flash text,
+  // since the flash message only ever contains the resulting balance, not the txn amount.
+  document.addEventListener('DOMContentLoaded', function() {
+    var lastAmount = {{ last_txn_amount|tojson if (last_txn_amount is defined and last_txn_amount is not none) else 'null' }};
+    var lastType = {{ last_txn_type|tojson if (last_txn_type is defined and last_txn_type is not none) else 'null' }};
+    var txnForm = document.getElementById('txnForm');
+
+    if (lastAmount !== null && txnForm) {
+      var isWithdraw = (lastType === 'DEBIT');
+      var newBalance = {{ customer.Balance|float if customer and customer.Balance is not none else 'null' }};
+
+      document.getElementById('slipDateTime').textContent = new Date().toLocaleString('en-IN');
+      document.getElementById('slipAccount').textContent = txnForm.getAttribute('data-account-no');
+      document.getElementById('slipName').textContent = txnForm.getAttribute('data-customer-name');
+      document.getElementById('slipType').textContent = isWithdraw ? 'CASH WITHDRAWAL' : 'CASH DEPOSIT';
+      document.getElementById('slipAmountLabel').textContent = isWithdraw ? 'Amount Debited' : 'Amount Credited';
+      var slipAmountEl = document.getElementById('slipAmount');
+      slipAmountEl.textContent = (isWithdraw ? '− ₹' : '+ ₹') +
+        lastAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+      slipAmountEl.style.color = isWithdraw ? '#D8534A' : '#1F8A55';
+      document.getElementById('slipBalance').textContent = newBalance !== null
+        ? '₹' + newBalance.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})
+        : '-';
+
+      document.getElementById('slipOverlay').classList.add('active');
+    }
+  });
+</script>
+
+</body>
+</html>
