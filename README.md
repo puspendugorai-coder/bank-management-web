@@ -32,9 +32,9 @@ bank_project/
 
 <h2>**🔑 These Access codes are mandatory to get logged in into the particular portal so note it for each portal.**</h2>
 
-The **Customer** portal is different: customers log in with the **Email + Bank ID** that the
+<h4> Note:- The **Customer** portal is different: customers log in with the **Email + Bank ID** that the
 CSE entered when registering them. If it does not gets matched, they see
-*"You are not registered with us."*
+*"You are not registered with us."*</h4>
 
 ---
 ## <h1><i>**👉WORKING OF APP AND INDIVIDUALS👈**</i></h1>
