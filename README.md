@@ -21,6 +21,11 @@ bank_project/
     └── customer_dashboard.html  ← Customer portal — balance, statement, EMI payment
 ```
 ---
+### 🚀 Live Demo
+
+## 👉 [Click Here to Open the App](https://alphacoder7206-bank-management-system.hf.space)
+
+---
 
 ## 🔑 Access Codes (staff portals)
 | Portal | Code |
